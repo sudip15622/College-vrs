@@ -1,0 +1,180 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  name          String
+  salt          String
+  password      String
+  role          Role      @default(User)
+  emailVerified DateTime?
+  image         String?
+  
+  bookings      Booking[]
+  accounts      Account[]
+  sessions      Session[]
+
+  @@index([email])
+  @@index([role])
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(uuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model Listing {
+  id String @id @default(uuid())
+
+  // Basic Info
+  type        VehicleType
+  name        String      @unique // name of vehicle which include brand model and year
+  description String      @db.Text
+
+  // Vehicle Specifications
+  fuelType       FuelType         @default(Petrol)
+  transmission   TransmissionType @default(Manual)
+  engineCapacity Int? // CC for petrol bikes, null for electric
+  mileage        Int? // e.g., "45 km/l" or "80 km range"
+
+  // Pricing & Location
+  pricePerDay Int
+
+  // Features & Condition
+  features  Json? // Array of features: ["ABS", "Digital Display", "USB Charging"]
+  condition VehicleCondition @default(Excellent)
+
+  // Media
+  image Json // Primary image: { "url": "...", "publicId": "..." }
+
+  // Availability & Status
+  isAvailable Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  bookings Booking[]
+
+  @@index([type, isAvailable])
+  @@index([name])
+  @@index([pricePerDay])
+  @@index([createdAt])
+  @@index([isAvailable, createdAt])
+  @@map("listings")
+}
+
+model Booking {
+  id        String @id @default(uuid())
+  userId    String
+  listingId String
+
+  // date and times
+  startDate DateTime
+  endDate   DateTime
+
+  // pricing details
+  pricePerDay Float @db.DoublePrecision
+  totalDays   Int
+  totalPrice  Float @db.DoublePrecision
+
+  status BookingStatus @default(Confirmed)
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  bookedAt  DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Indexes
+  @@index([userId])
+  @@index([listingId])
+  @@index([status])
+  @@index([startDate, endDate])
+  @@index([listingId, startDate, endDate]) // Check date conflicts
+  @@index([status, startDate])
+  @@map("bookings")
+}
+
+enum Role {
+  User
+  Admin
+}
+
+enum VehicleType {
+  Bike
+  Scooter
+}
+
+enum FuelType {
+  Petrol
+  Electric
+}
+
+enum TransmissionType {
+  Manual
+  Automatic
+}
+
+enum VehicleCondition {
+  Excellent
+  Good
+  Fair
+}
+
+enum BookingStatus {
+  Confirmed // Booking confirmed (direct, no approval needed)
+  Active // Ongoing rental
+  Completed // Rental finished
+  Cancelled // Cancelled booking
+}
