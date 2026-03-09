@@ -399,36 +399,11 @@ function SpecCard({
 }
 
 function FeatureCard({ feature }: { feature: string }) {
-  // Feature to icon mapping
-  const featureIconMap: { [key: string]: React.ReactNode } = {
-    ABS: <AiOutlineSafety />,
-    "USB Charging Port": <FaUsb />,
-    "Extra Helmet Provided": <GiFullMotorcycleHelmet />,
-    "Bluetooth Connectivity": <FaBluetooth />,
-    "Disc Brakes": <GiDiscGolfBag />,
-    "LED Headlights": <HiLightBulb />,
-    "Digital Speedometer": <PiSpeedometerFill />,
-    "Under-Seat Storage": <BsBoxSeam />,
-    "Self Start": <FaKey />,
-    "GPS Tracker": <MdGpsFixed />,
-    "Mobile Holder": <MdPhoneAndroid />,
-    "Alloy Wheels": <GiCarWheel />,
-  };
-
-  // Normalize feature name to match the mapping (case-insensitive)
-  const normalizedFeature = Object.keys(featureIconMap).find(
-    (key) => key.toLowerCase() === feature.toLowerCase(),
-  );
-
-  const icon = normalizedFeature ? (
-    featureIconMap[normalizedFeature]
-  ) : (
-    <BsStars />
-  );
-
   return (
     <div className="flex gap-4 items-center">
-      <span className="flex items-center text-2xl">{icon}</span>
+      <span className="flex items-center text-2xl">
+        <BsStars />
+      </span>
       <p className="">{feature}</p>
     </div>
   );
