@@ -21,7 +21,7 @@ model User {
   password      String
   role          Role      @default(User)
   emailVerified DateTime?
-  image         String?
+  image         String? @default("/default_user.png")
   
   bookings      Booking[]
   accounts      Account[]
@@ -124,17 +124,36 @@ model Booking {
   endDate   DateTime
 
   // pricing details
-  pricePerDay Float @db.DoublePrecision
+  pricePerDay Int 
   totalDays   Int
-  totalPrice  Float @db.DoublePrecision
+  totalPrice  Int 
 
-  status BookingStatus @default(Confirmed)
+  //contact Info
+  renterContactNumber String
+  renterNotes String?
+  ownerNotes String?
+
+  //payment info
+  paymentMethod PaymentMethod?
+  isPaid Boolean @default(false)
+  paidAt DateTime?
+
+  //cancellation
+  cancelledAt        DateTime?
+  cancelledBy        String? // User ID who cancelled
+  cancellationReason String?
+  refundAmount       Int?
+  refundStatus       RefundStatus?
+
+  status BookingStatus @default(Pending)
 
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
 
   bookedAt  DateTime @default(now())
   updatedAt DateTime @updatedAt
+  completedAt DateTime?
+  expiredAt DateTime?
 
   // Indexes
   @@index([userId])
@@ -173,8 +192,20 @@ enum VehicleCondition {
 }
 
 enum BookingStatus {
+  Pending
   Confirmed // Booking confirmed (direct, no approval needed)
   Active // Ongoing rental
   Completed // Rental finished
   Cancelled // Cancelled booking
+}
+enum PaymentMethod {
+  Khalti
+  Esewa
+  Cash
+}
+
+enum RefundStatus {
+  Pending
+  Processed
+  Failed
 }

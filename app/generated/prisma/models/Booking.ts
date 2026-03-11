@@ -30,12 +30,14 @@ export type BookingAvgAggregateOutputType = {
   pricePerDay: number | null
   totalDays: number | null
   totalPrice: number | null
+  refundAmount: number | null
 }
 
 export type BookingSumAggregateOutputType = {
   pricePerDay: number | null
   totalDays: number | null
   totalPrice: number | null
+  refundAmount: number | null
 }
 
 export type BookingMinAggregateOutputType = {
@@ -47,9 +49,22 @@ export type BookingMinAggregateOutputType = {
   pricePerDay: number | null
   totalDays: number | null
   totalPrice: number | null
+  renterContactNumber: string | null
+  renterNotes: string | null
+  ownerNotes: string | null
+  paymentMethod: $Enums.PaymentMethod | null
+  isPaid: boolean | null
+  paidAt: Date | null
+  cancelledAt: Date | null
+  cancelledBy: string | null
+  cancellationReason: string | null
+  refundAmount: number | null
+  refundStatus: $Enums.RefundStatus | null
   status: $Enums.BookingStatus | null
   bookedAt: Date | null
   updatedAt: Date | null
+  completedAt: Date | null
+  expiredAt: Date | null
 }
 
 export type BookingMaxAggregateOutputType = {
@@ -61,9 +76,22 @@ export type BookingMaxAggregateOutputType = {
   pricePerDay: number | null
   totalDays: number | null
   totalPrice: number | null
+  renterContactNumber: string | null
+  renterNotes: string | null
+  ownerNotes: string | null
+  paymentMethod: $Enums.PaymentMethod | null
+  isPaid: boolean | null
+  paidAt: Date | null
+  cancelledAt: Date | null
+  cancelledBy: string | null
+  cancellationReason: string | null
+  refundAmount: number | null
+  refundStatus: $Enums.RefundStatus | null
   status: $Enums.BookingStatus | null
   bookedAt: Date | null
   updatedAt: Date | null
+  completedAt: Date | null
+  expiredAt: Date | null
 }
 
 export type BookingCountAggregateOutputType = {
@@ -75,9 +103,22 @@ export type BookingCountAggregateOutputType = {
   pricePerDay: number
   totalDays: number
   totalPrice: number
+  renterContactNumber: number
+  renterNotes: number
+  ownerNotes: number
+  paymentMethod: number
+  isPaid: number
+  paidAt: number
+  cancelledAt: number
+  cancelledBy: number
+  cancellationReason: number
+  refundAmount: number
+  refundStatus: number
   status: number
   bookedAt: number
   updatedAt: number
+  completedAt: number
+  expiredAt: number
   _all: number
 }
 
@@ -86,12 +127,14 @@ export type BookingAvgAggregateInputType = {
   pricePerDay?: true
   totalDays?: true
   totalPrice?: true
+  refundAmount?: true
 }
 
 export type BookingSumAggregateInputType = {
   pricePerDay?: true
   totalDays?: true
   totalPrice?: true
+  refundAmount?: true
 }
 
 export type BookingMinAggregateInputType = {
@@ -103,9 +146,22 @@ export type BookingMinAggregateInputType = {
   pricePerDay?: true
   totalDays?: true
   totalPrice?: true
+  renterContactNumber?: true
+  renterNotes?: true
+  ownerNotes?: true
+  paymentMethod?: true
+  isPaid?: true
+  paidAt?: true
+  cancelledAt?: true
+  cancelledBy?: true
+  cancellationReason?: true
+  refundAmount?: true
+  refundStatus?: true
   status?: true
   bookedAt?: true
   updatedAt?: true
+  completedAt?: true
+  expiredAt?: true
 }
 
 export type BookingMaxAggregateInputType = {
@@ -117,9 +173,22 @@ export type BookingMaxAggregateInputType = {
   pricePerDay?: true
   totalDays?: true
   totalPrice?: true
+  renterContactNumber?: true
+  renterNotes?: true
+  ownerNotes?: true
+  paymentMethod?: true
+  isPaid?: true
+  paidAt?: true
+  cancelledAt?: true
+  cancelledBy?: true
+  cancellationReason?: true
+  refundAmount?: true
+  refundStatus?: true
   status?: true
   bookedAt?: true
   updatedAt?: true
+  completedAt?: true
+  expiredAt?: true
 }
 
 export type BookingCountAggregateInputType = {
@@ -131,9 +200,22 @@ export type BookingCountAggregateInputType = {
   pricePerDay?: true
   totalDays?: true
   totalPrice?: true
+  renterContactNumber?: true
+  renterNotes?: true
+  ownerNotes?: true
+  paymentMethod?: true
+  isPaid?: true
+  paidAt?: true
+  cancelledAt?: true
+  cancelledBy?: true
+  cancellationReason?: true
+  refundAmount?: true
+  refundStatus?: true
   status?: true
   bookedAt?: true
   updatedAt?: true
+  completedAt?: true
+  expiredAt?: true
   _all?: true
 }
 
@@ -232,9 +314,22 @@ export type BookingGroupByOutputType = {
   pricePerDay: number
   totalDays: number
   totalPrice: number
+  renterContactNumber: string
+  renterNotes: string | null
+  ownerNotes: string | null
+  paymentMethod: $Enums.PaymentMethod | null
+  isPaid: boolean
+  paidAt: Date | null
+  cancelledAt: Date | null
+  cancelledBy: string | null
+  cancellationReason: string | null
+  refundAmount: number | null
+  refundStatus: $Enums.RefundStatus | null
   status: $Enums.BookingStatus
   bookedAt: Date
   updatedAt: Date
+  completedAt: Date | null
+  expiredAt: Date | null
   _count: BookingCountAggregateOutputType | null
   _avg: BookingAvgAggregateOutputType | null
   _sum: BookingSumAggregateOutputType | null
@@ -266,12 +361,25 @@ export type BookingWhereInput = {
   listingId?: Prisma.StringFilter<"Booking"> | string
   startDate?: Prisma.DateTimeFilter<"Booking"> | Date | string
   endDate?: Prisma.DateTimeFilter<"Booking"> | Date | string
-  pricePerDay?: Prisma.FloatFilter<"Booking"> | number
+  pricePerDay?: Prisma.IntFilter<"Booking"> | number
   totalDays?: Prisma.IntFilter<"Booking"> | number
-  totalPrice?: Prisma.FloatFilter<"Booking"> | number
+  totalPrice?: Prisma.IntFilter<"Booking"> | number
+  renterContactNumber?: Prisma.StringFilter<"Booking"> | string
+  renterNotes?: Prisma.StringNullableFilter<"Booking"> | string | null
+  ownerNotes?: Prisma.StringNullableFilter<"Booking"> | string | null
+  paymentMethod?: Prisma.EnumPaymentMethodNullableFilter<"Booking"> | $Enums.PaymentMethod | null
+  isPaid?: Prisma.BoolFilter<"Booking"> | boolean
+  paidAt?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
+  cancelledAt?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
+  cancelledBy?: Prisma.StringNullableFilter<"Booking"> | string | null
+  cancellationReason?: Prisma.StringNullableFilter<"Booking"> | string | null
+  refundAmount?: Prisma.IntNullableFilter<"Booking"> | number | null
+  refundStatus?: Prisma.EnumRefundStatusNullableFilter<"Booking"> | $Enums.RefundStatus | null
   status?: Prisma.EnumBookingStatusFilter<"Booking"> | $Enums.BookingStatus
   bookedAt?: Prisma.DateTimeFilter<"Booking"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Booking"> | Date | string
+  completedAt?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
+  expiredAt?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   listing?: Prisma.XOR<Prisma.ListingScalarRelationFilter, Prisma.ListingWhereInput>
 }
@@ -285,9 +393,22 @@ export type BookingOrderByWithRelationInput = {
   pricePerDay?: Prisma.SortOrder
   totalDays?: Prisma.SortOrder
   totalPrice?: Prisma.SortOrder
+  renterContactNumber?: Prisma.SortOrder
+  renterNotes?: Prisma.SortOrderInput | Prisma.SortOrder
+  ownerNotes?: Prisma.SortOrderInput | Prisma.SortOrder
+  paymentMethod?: Prisma.SortOrderInput | Prisma.SortOrder
+  isPaid?: Prisma.SortOrder
+  paidAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  cancelledAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  cancelledBy?: Prisma.SortOrderInput | Prisma.SortOrder
+  cancellationReason?: Prisma.SortOrderInput | Prisma.SortOrder
+  refundAmount?: Prisma.SortOrderInput | Prisma.SortOrder
+  refundStatus?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   bookedAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  expiredAt?: Prisma.SortOrderInput | Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
   listing?: Prisma.ListingOrderByWithRelationInput
 }
@@ -301,12 +422,25 @@ export type BookingWhereUniqueInput = Prisma.AtLeast<{
   listingId?: Prisma.StringFilter<"Booking"> | string
   startDate?: Prisma.DateTimeFilter<"Booking"> | Date | string
   endDate?: Prisma.DateTimeFilter<"Booking"> | Date | string
-  pricePerDay?: Prisma.FloatFilter<"Booking"> | number
+  pricePerDay?: Prisma.IntFilter<"Booking"> | number
   totalDays?: Prisma.IntFilter<"Booking"> | number
-  totalPrice?: Prisma.FloatFilter<"Booking"> | number
+  totalPrice?: Prisma.IntFilter<"Booking"> | number
+  renterContactNumber?: Prisma.StringFilter<"Booking"> | string
+  renterNotes?: Prisma.StringNullableFilter<"Booking"> | string | null
+  ownerNotes?: Prisma.StringNullableFilter<"Booking"> | string | null
+  paymentMethod?: Prisma.EnumPaymentMethodNullableFilter<"Booking"> | $Enums.PaymentMethod | null
+  isPaid?: Prisma.BoolFilter<"Booking"> | boolean
+  paidAt?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
+  cancelledAt?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
+  cancelledBy?: Prisma.StringNullableFilter<"Booking"> | string | null
+  cancellationReason?: Prisma.StringNullableFilter<"Booking"> | string | null
+  refundAmount?: Prisma.IntNullableFilter<"Booking"> | number | null
+  refundStatus?: Prisma.EnumRefundStatusNullableFilter<"Booking"> | $Enums.RefundStatus | null
   status?: Prisma.EnumBookingStatusFilter<"Booking"> | $Enums.BookingStatus
   bookedAt?: Prisma.DateTimeFilter<"Booking"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Booking"> | Date | string
+  completedAt?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
+  expiredAt?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   listing?: Prisma.XOR<Prisma.ListingScalarRelationFilter, Prisma.ListingWhereInput>
 }, "id">
@@ -320,9 +454,22 @@ export type BookingOrderByWithAggregationInput = {
   pricePerDay?: Prisma.SortOrder
   totalDays?: Prisma.SortOrder
   totalPrice?: Prisma.SortOrder
+  renterContactNumber?: Prisma.SortOrder
+  renterNotes?: Prisma.SortOrderInput | Prisma.SortOrder
+  ownerNotes?: Prisma.SortOrderInput | Prisma.SortOrder
+  paymentMethod?: Prisma.SortOrderInput | Prisma.SortOrder
+  isPaid?: Prisma.SortOrder
+  paidAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  cancelledAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  cancelledBy?: Prisma.SortOrderInput | Prisma.SortOrder
+  cancellationReason?: Prisma.SortOrderInput | Prisma.SortOrder
+  refundAmount?: Prisma.SortOrderInput | Prisma.SortOrder
+  refundStatus?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   bookedAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  expiredAt?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.BookingCountOrderByAggregateInput
   _avg?: Prisma.BookingAvgOrderByAggregateInput
   _max?: Prisma.BookingMaxOrderByAggregateInput
@@ -339,12 +486,25 @@ export type BookingScalarWhereWithAggregatesInput = {
   listingId?: Prisma.StringWithAggregatesFilter<"Booking"> | string
   startDate?: Prisma.DateTimeWithAggregatesFilter<"Booking"> | Date | string
   endDate?: Prisma.DateTimeWithAggregatesFilter<"Booking"> | Date | string
-  pricePerDay?: Prisma.FloatWithAggregatesFilter<"Booking"> | number
+  pricePerDay?: Prisma.IntWithAggregatesFilter<"Booking"> | number
   totalDays?: Prisma.IntWithAggregatesFilter<"Booking"> | number
-  totalPrice?: Prisma.FloatWithAggregatesFilter<"Booking"> | number
+  totalPrice?: Prisma.IntWithAggregatesFilter<"Booking"> | number
+  renterContactNumber?: Prisma.StringWithAggregatesFilter<"Booking"> | string
+  renterNotes?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
+  ownerNotes?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
+  paymentMethod?: Prisma.EnumPaymentMethodNullableWithAggregatesFilter<"Booking"> | $Enums.PaymentMethod | null
+  isPaid?: Prisma.BoolWithAggregatesFilter<"Booking"> | boolean
+  paidAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Booking"> | Date | string | null
+  cancelledAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Booking"> | Date | string | null
+  cancelledBy?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
+  cancellationReason?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
+  refundAmount?: Prisma.IntNullableWithAggregatesFilter<"Booking"> | number | null
+  refundStatus?: Prisma.EnumRefundStatusNullableWithAggregatesFilter<"Booking"> | $Enums.RefundStatus | null
   status?: Prisma.EnumBookingStatusWithAggregatesFilter<"Booking"> | $Enums.BookingStatus
   bookedAt?: Prisma.DateTimeWithAggregatesFilter<"Booking"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Booking"> | Date | string
+  completedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Booking"> | Date | string | null
+  expiredAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Booking"> | Date | string | null
 }
 
 export type BookingCreateInput = {
@@ -354,9 +514,22 @@ export type BookingCreateInput = {
   pricePerDay: number
   totalDays: number
   totalPrice: number
+  renterContactNumber: string
+  renterNotes?: string | null
+  ownerNotes?: string | null
+  paymentMethod?: $Enums.PaymentMethod | null
+  isPaid?: boolean
+  paidAt?: Date | string | null
+  cancelledAt?: Date | string | null
+  cancelledBy?: string | null
+  cancellationReason?: string | null
+  refundAmount?: number | null
+  refundStatus?: $Enums.RefundStatus | null
   status?: $Enums.BookingStatus
   bookedAt?: Date | string
   updatedAt?: Date | string
+  completedAt?: Date | string | null
+  expiredAt?: Date | string | null
   user: Prisma.UserCreateNestedOneWithoutBookingsInput
   listing: Prisma.ListingCreateNestedOneWithoutBookingsInput
 }
@@ -370,21 +543,47 @@ export type BookingUncheckedCreateInput = {
   pricePerDay: number
   totalDays: number
   totalPrice: number
+  renterContactNumber: string
+  renterNotes?: string | null
+  ownerNotes?: string | null
+  paymentMethod?: $Enums.PaymentMethod | null
+  isPaid?: boolean
+  paidAt?: Date | string | null
+  cancelledAt?: Date | string | null
+  cancelledBy?: string | null
+  cancellationReason?: string | null
+  refundAmount?: number | null
+  refundStatus?: $Enums.RefundStatus | null
   status?: $Enums.BookingStatus
   bookedAt?: Date | string
   updatedAt?: Date | string
+  completedAt?: Date | string | null
+  expiredAt?: Date | string | null
 }
 
 export type BookingUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  pricePerDay?: Prisma.FloatFieldUpdateOperationsInput | number
+  pricePerDay?: Prisma.IntFieldUpdateOperationsInput | number
   totalDays?: Prisma.IntFieldUpdateOperationsInput | number
-  totalPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalPrice?: Prisma.IntFieldUpdateOperationsInput | number
+  renterContactNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  renterNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ownerNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
+  isPaid?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancellationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refundAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  refundStatus?: Prisma.NullableEnumRefundStatusFieldUpdateOperationsInput | $Enums.RefundStatus | null
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   bookedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   user?: Prisma.UserUpdateOneRequiredWithoutBookingsNestedInput
   listing?: Prisma.ListingUpdateOneRequiredWithoutBookingsNestedInput
 }
@@ -395,12 +594,25 @@ export type BookingUncheckedUpdateInput = {
   listingId?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  pricePerDay?: Prisma.FloatFieldUpdateOperationsInput | number
+  pricePerDay?: Prisma.IntFieldUpdateOperationsInput | number
   totalDays?: Prisma.IntFieldUpdateOperationsInput | number
-  totalPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalPrice?: Prisma.IntFieldUpdateOperationsInput | number
+  renterContactNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  renterNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ownerNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
+  isPaid?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancellationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refundAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  refundStatus?: Prisma.NullableEnumRefundStatusFieldUpdateOperationsInput | $Enums.RefundStatus | null
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   bookedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type BookingCreateManyInput = {
@@ -412,21 +624,47 @@ export type BookingCreateManyInput = {
   pricePerDay: number
   totalDays: number
   totalPrice: number
+  renterContactNumber: string
+  renterNotes?: string | null
+  ownerNotes?: string | null
+  paymentMethod?: $Enums.PaymentMethod | null
+  isPaid?: boolean
+  paidAt?: Date | string | null
+  cancelledAt?: Date | string | null
+  cancelledBy?: string | null
+  cancellationReason?: string | null
+  refundAmount?: number | null
+  refundStatus?: $Enums.RefundStatus | null
   status?: $Enums.BookingStatus
   bookedAt?: Date | string
   updatedAt?: Date | string
+  completedAt?: Date | string | null
+  expiredAt?: Date | string | null
 }
 
 export type BookingUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  pricePerDay?: Prisma.FloatFieldUpdateOperationsInput | number
+  pricePerDay?: Prisma.IntFieldUpdateOperationsInput | number
   totalDays?: Prisma.IntFieldUpdateOperationsInput | number
-  totalPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalPrice?: Prisma.IntFieldUpdateOperationsInput | number
+  renterContactNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  renterNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ownerNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
+  isPaid?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancellationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refundAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  refundStatus?: Prisma.NullableEnumRefundStatusFieldUpdateOperationsInput | $Enums.RefundStatus | null
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   bookedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type BookingUncheckedUpdateManyInput = {
@@ -435,12 +673,25 @@ export type BookingUncheckedUpdateManyInput = {
   listingId?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  pricePerDay?: Prisma.FloatFieldUpdateOperationsInput | number
+  pricePerDay?: Prisma.IntFieldUpdateOperationsInput | number
   totalDays?: Prisma.IntFieldUpdateOperationsInput | number
-  totalPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalPrice?: Prisma.IntFieldUpdateOperationsInput | number
+  renterContactNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  renterNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ownerNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
+  isPaid?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancellationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refundAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  refundStatus?: Prisma.NullableEnumRefundStatusFieldUpdateOperationsInput | $Enums.RefundStatus | null
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   bookedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type BookingListRelationFilter = {
@@ -462,15 +713,29 @@ export type BookingCountOrderByAggregateInput = {
   pricePerDay?: Prisma.SortOrder
   totalDays?: Prisma.SortOrder
   totalPrice?: Prisma.SortOrder
+  renterContactNumber?: Prisma.SortOrder
+  renterNotes?: Prisma.SortOrder
+  ownerNotes?: Prisma.SortOrder
+  paymentMethod?: Prisma.SortOrder
+  isPaid?: Prisma.SortOrder
+  paidAt?: Prisma.SortOrder
+  cancelledAt?: Prisma.SortOrder
+  cancelledBy?: Prisma.SortOrder
+  cancellationReason?: Prisma.SortOrder
+  refundAmount?: Prisma.SortOrder
+  refundStatus?: Prisma.SortOrder
   status?: Prisma.SortOrder
   bookedAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  completedAt?: Prisma.SortOrder
+  expiredAt?: Prisma.SortOrder
 }
 
 export type BookingAvgOrderByAggregateInput = {
   pricePerDay?: Prisma.SortOrder
   totalDays?: Prisma.SortOrder
   totalPrice?: Prisma.SortOrder
+  refundAmount?: Prisma.SortOrder
 }
 
 export type BookingMaxOrderByAggregateInput = {
@@ -482,9 +747,22 @@ export type BookingMaxOrderByAggregateInput = {
   pricePerDay?: Prisma.SortOrder
   totalDays?: Prisma.SortOrder
   totalPrice?: Prisma.SortOrder
+  renterContactNumber?: Prisma.SortOrder
+  renterNotes?: Prisma.SortOrder
+  ownerNotes?: Prisma.SortOrder
+  paymentMethod?: Prisma.SortOrder
+  isPaid?: Prisma.SortOrder
+  paidAt?: Prisma.SortOrder
+  cancelledAt?: Prisma.SortOrder
+  cancelledBy?: Prisma.SortOrder
+  cancellationReason?: Prisma.SortOrder
+  refundAmount?: Prisma.SortOrder
+  refundStatus?: Prisma.SortOrder
   status?: Prisma.SortOrder
   bookedAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  completedAt?: Prisma.SortOrder
+  expiredAt?: Prisma.SortOrder
 }
 
 export type BookingMinOrderByAggregateInput = {
@@ -496,15 +774,29 @@ export type BookingMinOrderByAggregateInput = {
   pricePerDay?: Prisma.SortOrder
   totalDays?: Prisma.SortOrder
   totalPrice?: Prisma.SortOrder
+  renterContactNumber?: Prisma.SortOrder
+  renterNotes?: Prisma.SortOrder
+  ownerNotes?: Prisma.SortOrder
+  paymentMethod?: Prisma.SortOrder
+  isPaid?: Prisma.SortOrder
+  paidAt?: Prisma.SortOrder
+  cancelledAt?: Prisma.SortOrder
+  cancelledBy?: Prisma.SortOrder
+  cancellationReason?: Prisma.SortOrder
+  refundAmount?: Prisma.SortOrder
+  refundStatus?: Prisma.SortOrder
   status?: Prisma.SortOrder
   bookedAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  completedAt?: Prisma.SortOrder
+  expiredAt?: Prisma.SortOrder
 }
 
 export type BookingSumOrderByAggregateInput = {
   pricePerDay?: Prisma.SortOrder
   totalDays?: Prisma.SortOrder
   totalPrice?: Prisma.SortOrder
+  refundAmount?: Prisma.SortOrder
 }
 
 export type BookingCreateNestedManyWithoutUserInput = {
@@ -591,12 +883,12 @@ export type BookingUncheckedUpdateManyWithoutListingNestedInput = {
   deleteMany?: Prisma.BookingScalarWhereInput | Prisma.BookingScalarWhereInput[]
 }
 
-export type FloatFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
+export type NullableEnumPaymentMethodFieldUpdateOperationsInput = {
+  set?: $Enums.PaymentMethod | null
+}
+
+export type NullableEnumRefundStatusFieldUpdateOperationsInput = {
+  set?: $Enums.RefundStatus | null
 }
 
 export type EnumBookingStatusFieldUpdateOperationsInput = {
@@ -610,9 +902,22 @@ export type BookingCreateWithoutUserInput = {
   pricePerDay: number
   totalDays: number
   totalPrice: number
+  renterContactNumber: string
+  renterNotes?: string | null
+  ownerNotes?: string | null
+  paymentMethod?: $Enums.PaymentMethod | null
+  isPaid?: boolean
+  paidAt?: Date | string | null
+  cancelledAt?: Date | string | null
+  cancelledBy?: string | null
+  cancellationReason?: string | null
+  refundAmount?: number | null
+  refundStatus?: $Enums.RefundStatus | null
   status?: $Enums.BookingStatus
   bookedAt?: Date | string
   updatedAt?: Date | string
+  completedAt?: Date | string | null
+  expiredAt?: Date | string | null
   listing: Prisma.ListingCreateNestedOneWithoutBookingsInput
 }
 
@@ -624,9 +929,22 @@ export type BookingUncheckedCreateWithoutUserInput = {
   pricePerDay: number
   totalDays: number
   totalPrice: number
+  renterContactNumber: string
+  renterNotes?: string | null
+  ownerNotes?: string | null
+  paymentMethod?: $Enums.PaymentMethod | null
+  isPaid?: boolean
+  paidAt?: Date | string | null
+  cancelledAt?: Date | string | null
+  cancelledBy?: string | null
+  cancellationReason?: string | null
+  refundAmount?: number | null
+  refundStatus?: $Enums.RefundStatus | null
   status?: $Enums.BookingStatus
   bookedAt?: Date | string
   updatedAt?: Date | string
+  completedAt?: Date | string | null
+  expiredAt?: Date | string | null
 }
 
 export type BookingCreateOrConnectWithoutUserInput = {
@@ -664,12 +982,25 @@ export type BookingScalarWhereInput = {
   listingId?: Prisma.StringFilter<"Booking"> | string
   startDate?: Prisma.DateTimeFilter<"Booking"> | Date | string
   endDate?: Prisma.DateTimeFilter<"Booking"> | Date | string
-  pricePerDay?: Prisma.FloatFilter<"Booking"> | number
+  pricePerDay?: Prisma.IntFilter<"Booking"> | number
   totalDays?: Prisma.IntFilter<"Booking"> | number
-  totalPrice?: Prisma.FloatFilter<"Booking"> | number
+  totalPrice?: Prisma.IntFilter<"Booking"> | number
+  renterContactNumber?: Prisma.StringFilter<"Booking"> | string
+  renterNotes?: Prisma.StringNullableFilter<"Booking"> | string | null
+  ownerNotes?: Prisma.StringNullableFilter<"Booking"> | string | null
+  paymentMethod?: Prisma.EnumPaymentMethodNullableFilter<"Booking"> | $Enums.PaymentMethod | null
+  isPaid?: Prisma.BoolFilter<"Booking"> | boolean
+  paidAt?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
+  cancelledAt?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
+  cancelledBy?: Prisma.StringNullableFilter<"Booking"> | string | null
+  cancellationReason?: Prisma.StringNullableFilter<"Booking"> | string | null
+  refundAmount?: Prisma.IntNullableFilter<"Booking"> | number | null
+  refundStatus?: Prisma.EnumRefundStatusNullableFilter<"Booking"> | $Enums.RefundStatus | null
   status?: Prisma.EnumBookingStatusFilter<"Booking"> | $Enums.BookingStatus
   bookedAt?: Prisma.DateTimeFilter<"Booking"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Booking"> | Date | string
+  completedAt?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
+  expiredAt?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
 }
 
 export type BookingCreateWithoutListingInput = {
@@ -679,9 +1010,22 @@ export type BookingCreateWithoutListingInput = {
   pricePerDay: number
   totalDays: number
   totalPrice: number
+  renterContactNumber: string
+  renterNotes?: string | null
+  ownerNotes?: string | null
+  paymentMethod?: $Enums.PaymentMethod | null
+  isPaid?: boolean
+  paidAt?: Date | string | null
+  cancelledAt?: Date | string | null
+  cancelledBy?: string | null
+  cancellationReason?: string | null
+  refundAmount?: number | null
+  refundStatus?: $Enums.RefundStatus | null
   status?: $Enums.BookingStatus
   bookedAt?: Date | string
   updatedAt?: Date | string
+  completedAt?: Date | string | null
+  expiredAt?: Date | string | null
   user: Prisma.UserCreateNestedOneWithoutBookingsInput
 }
 
@@ -693,9 +1037,22 @@ export type BookingUncheckedCreateWithoutListingInput = {
   pricePerDay: number
   totalDays: number
   totalPrice: number
+  renterContactNumber: string
+  renterNotes?: string | null
+  ownerNotes?: string | null
+  paymentMethod?: $Enums.PaymentMethod | null
+  isPaid?: boolean
+  paidAt?: Date | string | null
+  cancelledAt?: Date | string | null
+  cancelledBy?: string | null
+  cancellationReason?: string | null
+  refundAmount?: number | null
+  refundStatus?: $Enums.RefundStatus | null
   status?: $Enums.BookingStatus
   bookedAt?: Date | string
   updatedAt?: Date | string
+  completedAt?: Date | string | null
+  expiredAt?: Date | string | null
 }
 
 export type BookingCreateOrConnectWithoutListingInput = {
@@ -732,21 +1089,47 @@ export type BookingCreateManyUserInput = {
   pricePerDay: number
   totalDays: number
   totalPrice: number
+  renterContactNumber: string
+  renterNotes?: string | null
+  ownerNotes?: string | null
+  paymentMethod?: $Enums.PaymentMethod | null
+  isPaid?: boolean
+  paidAt?: Date | string | null
+  cancelledAt?: Date | string | null
+  cancelledBy?: string | null
+  cancellationReason?: string | null
+  refundAmount?: number | null
+  refundStatus?: $Enums.RefundStatus | null
   status?: $Enums.BookingStatus
   bookedAt?: Date | string
   updatedAt?: Date | string
+  completedAt?: Date | string | null
+  expiredAt?: Date | string | null
 }
 
 export type BookingUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  pricePerDay?: Prisma.FloatFieldUpdateOperationsInput | number
+  pricePerDay?: Prisma.IntFieldUpdateOperationsInput | number
   totalDays?: Prisma.IntFieldUpdateOperationsInput | number
-  totalPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalPrice?: Prisma.IntFieldUpdateOperationsInput | number
+  renterContactNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  renterNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ownerNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
+  isPaid?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancellationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refundAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  refundStatus?: Prisma.NullableEnumRefundStatusFieldUpdateOperationsInput | $Enums.RefundStatus | null
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   bookedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   listing?: Prisma.ListingUpdateOneRequiredWithoutBookingsNestedInput
 }
 
@@ -755,12 +1138,25 @@ export type BookingUncheckedUpdateWithoutUserInput = {
   listingId?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  pricePerDay?: Prisma.FloatFieldUpdateOperationsInput | number
+  pricePerDay?: Prisma.IntFieldUpdateOperationsInput | number
   totalDays?: Prisma.IntFieldUpdateOperationsInput | number
-  totalPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalPrice?: Prisma.IntFieldUpdateOperationsInput | number
+  renterContactNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  renterNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ownerNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
+  isPaid?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancellationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refundAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  refundStatus?: Prisma.NullableEnumRefundStatusFieldUpdateOperationsInput | $Enums.RefundStatus | null
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   bookedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type BookingUncheckedUpdateManyWithoutUserInput = {
@@ -768,12 +1164,25 @@ export type BookingUncheckedUpdateManyWithoutUserInput = {
   listingId?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  pricePerDay?: Prisma.FloatFieldUpdateOperationsInput | number
+  pricePerDay?: Prisma.IntFieldUpdateOperationsInput | number
   totalDays?: Prisma.IntFieldUpdateOperationsInput | number
-  totalPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalPrice?: Prisma.IntFieldUpdateOperationsInput | number
+  renterContactNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  renterNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ownerNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
+  isPaid?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancellationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refundAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  refundStatus?: Prisma.NullableEnumRefundStatusFieldUpdateOperationsInput | $Enums.RefundStatus | null
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   bookedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type BookingCreateManyListingInput = {
@@ -784,21 +1193,47 @@ export type BookingCreateManyListingInput = {
   pricePerDay: number
   totalDays: number
   totalPrice: number
+  renterContactNumber: string
+  renterNotes?: string | null
+  ownerNotes?: string | null
+  paymentMethod?: $Enums.PaymentMethod | null
+  isPaid?: boolean
+  paidAt?: Date | string | null
+  cancelledAt?: Date | string | null
+  cancelledBy?: string | null
+  cancellationReason?: string | null
+  refundAmount?: number | null
+  refundStatus?: $Enums.RefundStatus | null
   status?: $Enums.BookingStatus
   bookedAt?: Date | string
   updatedAt?: Date | string
+  completedAt?: Date | string | null
+  expiredAt?: Date | string | null
 }
 
 export type BookingUpdateWithoutListingInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  pricePerDay?: Prisma.FloatFieldUpdateOperationsInput | number
+  pricePerDay?: Prisma.IntFieldUpdateOperationsInput | number
   totalDays?: Prisma.IntFieldUpdateOperationsInput | number
-  totalPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalPrice?: Prisma.IntFieldUpdateOperationsInput | number
+  renterContactNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  renterNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ownerNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
+  isPaid?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancellationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refundAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  refundStatus?: Prisma.NullableEnumRefundStatusFieldUpdateOperationsInput | $Enums.RefundStatus | null
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   bookedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   user?: Prisma.UserUpdateOneRequiredWithoutBookingsNestedInput
 }
 
@@ -807,12 +1242,25 @@ export type BookingUncheckedUpdateWithoutListingInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  pricePerDay?: Prisma.FloatFieldUpdateOperationsInput | number
+  pricePerDay?: Prisma.IntFieldUpdateOperationsInput | number
   totalDays?: Prisma.IntFieldUpdateOperationsInput | number
-  totalPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalPrice?: Prisma.IntFieldUpdateOperationsInput | number
+  renterContactNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  renterNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ownerNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
+  isPaid?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancellationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refundAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  refundStatus?: Prisma.NullableEnumRefundStatusFieldUpdateOperationsInput | $Enums.RefundStatus | null
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   bookedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type BookingUncheckedUpdateManyWithoutListingInput = {
@@ -820,12 +1268,25 @@ export type BookingUncheckedUpdateManyWithoutListingInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  pricePerDay?: Prisma.FloatFieldUpdateOperationsInput | number
+  pricePerDay?: Prisma.IntFieldUpdateOperationsInput | number
   totalDays?: Prisma.IntFieldUpdateOperationsInput | number
-  totalPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalPrice?: Prisma.IntFieldUpdateOperationsInput | number
+  renterContactNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  renterNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ownerNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentMethod?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
+  isPaid?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancellationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refundAmount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  refundStatus?: Prisma.NullableEnumRefundStatusFieldUpdateOperationsInput | $Enums.RefundStatus | null
   status?: Prisma.EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
   bookedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 
@@ -839,9 +1300,22 @@ export type BookingSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   pricePerDay?: boolean
   totalDays?: boolean
   totalPrice?: boolean
+  renterContactNumber?: boolean
+  renterNotes?: boolean
+  ownerNotes?: boolean
+  paymentMethod?: boolean
+  isPaid?: boolean
+  paidAt?: boolean
+  cancelledAt?: boolean
+  cancelledBy?: boolean
+  cancellationReason?: boolean
+  refundAmount?: boolean
+  refundStatus?: boolean
   status?: boolean
   bookedAt?: boolean
   updatedAt?: boolean
+  completedAt?: boolean
+  expiredAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   listing?: boolean | Prisma.ListingDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["booking"]>
@@ -855,9 +1329,22 @@ export type BookingSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   pricePerDay?: boolean
   totalDays?: boolean
   totalPrice?: boolean
+  renterContactNumber?: boolean
+  renterNotes?: boolean
+  ownerNotes?: boolean
+  paymentMethod?: boolean
+  isPaid?: boolean
+  paidAt?: boolean
+  cancelledAt?: boolean
+  cancelledBy?: boolean
+  cancellationReason?: boolean
+  refundAmount?: boolean
+  refundStatus?: boolean
   status?: boolean
   bookedAt?: boolean
   updatedAt?: boolean
+  completedAt?: boolean
+  expiredAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   listing?: boolean | Prisma.ListingDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["booking"]>
@@ -871,9 +1358,22 @@ export type BookingSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   pricePerDay?: boolean
   totalDays?: boolean
   totalPrice?: boolean
+  renterContactNumber?: boolean
+  renterNotes?: boolean
+  ownerNotes?: boolean
+  paymentMethod?: boolean
+  isPaid?: boolean
+  paidAt?: boolean
+  cancelledAt?: boolean
+  cancelledBy?: boolean
+  cancellationReason?: boolean
+  refundAmount?: boolean
+  refundStatus?: boolean
   status?: boolean
   bookedAt?: boolean
   updatedAt?: boolean
+  completedAt?: boolean
+  expiredAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   listing?: boolean | Prisma.ListingDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["booking"]>
@@ -887,12 +1387,25 @@ export type BookingSelectScalar = {
   pricePerDay?: boolean
   totalDays?: boolean
   totalPrice?: boolean
+  renterContactNumber?: boolean
+  renterNotes?: boolean
+  ownerNotes?: boolean
+  paymentMethod?: boolean
+  isPaid?: boolean
+  paidAt?: boolean
+  cancelledAt?: boolean
+  cancelledBy?: boolean
+  cancellationReason?: boolean
+  refundAmount?: boolean
+  refundStatus?: boolean
   status?: boolean
   bookedAt?: boolean
   updatedAt?: boolean
+  completedAt?: boolean
+  expiredAt?: boolean
 }
 
-export type BookingOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "listingId" | "startDate" | "endDate" | "pricePerDay" | "totalDays" | "totalPrice" | "status" | "bookedAt" | "updatedAt", ExtArgs["result"]["booking"]>
+export type BookingOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "listingId" | "startDate" | "endDate" | "pricePerDay" | "totalDays" | "totalPrice" | "renterContactNumber" | "renterNotes" | "ownerNotes" | "paymentMethod" | "isPaid" | "paidAt" | "cancelledAt" | "cancelledBy" | "cancellationReason" | "refundAmount" | "refundStatus" | "status" | "bookedAt" | "updatedAt" | "completedAt" | "expiredAt", ExtArgs["result"]["booking"]>
 export type BookingInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   listing?: boolean | Prisma.ListingDefaultArgs<ExtArgs>
@@ -921,9 +1434,22 @@ export type $BookingPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     pricePerDay: number
     totalDays: number
     totalPrice: number
+    renterContactNumber: string
+    renterNotes: string | null
+    ownerNotes: string | null
+    paymentMethod: $Enums.PaymentMethod | null
+    isPaid: boolean
+    paidAt: Date | null
+    cancelledAt: Date | null
+    cancelledBy: string | null
+    cancellationReason: string | null
+    refundAmount: number | null
+    refundStatus: $Enums.RefundStatus | null
     status: $Enums.BookingStatus
     bookedAt: Date
     updatedAt: Date
+    completedAt: Date | null
+    expiredAt: Date | null
   }, ExtArgs["result"]["booking"]>
   composites: {}
 }
@@ -1354,12 +1880,25 @@ export interface BookingFieldRefs {
   readonly listingId: Prisma.FieldRef<"Booking", 'String'>
   readonly startDate: Prisma.FieldRef<"Booking", 'DateTime'>
   readonly endDate: Prisma.FieldRef<"Booking", 'DateTime'>
-  readonly pricePerDay: Prisma.FieldRef<"Booking", 'Float'>
+  readonly pricePerDay: Prisma.FieldRef<"Booking", 'Int'>
   readonly totalDays: Prisma.FieldRef<"Booking", 'Int'>
-  readonly totalPrice: Prisma.FieldRef<"Booking", 'Float'>
+  readonly totalPrice: Prisma.FieldRef<"Booking", 'Int'>
+  readonly renterContactNumber: Prisma.FieldRef<"Booking", 'String'>
+  readonly renterNotes: Prisma.FieldRef<"Booking", 'String'>
+  readonly ownerNotes: Prisma.FieldRef<"Booking", 'String'>
+  readonly paymentMethod: Prisma.FieldRef<"Booking", 'PaymentMethod'>
+  readonly isPaid: Prisma.FieldRef<"Booking", 'Boolean'>
+  readonly paidAt: Prisma.FieldRef<"Booking", 'DateTime'>
+  readonly cancelledAt: Prisma.FieldRef<"Booking", 'DateTime'>
+  readonly cancelledBy: Prisma.FieldRef<"Booking", 'String'>
+  readonly cancellationReason: Prisma.FieldRef<"Booking", 'String'>
+  readonly refundAmount: Prisma.FieldRef<"Booking", 'Int'>
+  readonly refundStatus: Prisma.FieldRef<"Booking", 'RefundStatus'>
   readonly status: Prisma.FieldRef<"Booking", 'BookingStatus'>
   readonly bookedAt: Prisma.FieldRef<"Booking", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Booking", 'DateTime'>
+  readonly completedAt: Prisma.FieldRef<"Booking", 'DateTime'>
+  readonly expiredAt: Prisma.FieldRef<"Booking", 'DateTime'>
 }
     
 

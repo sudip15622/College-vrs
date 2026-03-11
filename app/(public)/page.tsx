@@ -9,7 +9,7 @@ import {
 
 export default async function Home() {
   return (
-    <div className="w-full mx-auto space-y-10 py-12">
+    <div className="w-full mx-auto space-y-10">
       <div className="space-y-10">
         <div className="text-center leading-tight">
           <h1 className="text-4xl font-bold">Find your perfect ride</h1>

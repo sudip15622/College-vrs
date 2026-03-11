@@ -156,9 +156,22 @@ export const BookingScalarFieldEnum = {
   pricePerDay: 'pricePerDay',
   totalDays: 'totalDays',
   totalPrice: 'totalPrice',
+  renterContactNumber: 'renterContactNumber',
+  renterNotes: 'renterNotes',
+  ownerNotes: 'ownerNotes',
+  paymentMethod: 'paymentMethod',
+  isPaid: 'isPaid',
+  paidAt: 'paidAt',
+  cancelledAt: 'cancelledAt',
+  cancelledBy: 'cancelledBy',
+  cancellationReason: 'cancellationReason',
+  refundAmount: 'refundAmount',
+  refundStatus: 'refundStatus',
   status: 'status',
   bookedAt: 'bookedAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  completedAt: 'completedAt',
+  expiredAt: 'expiredAt'
 } as const
 
 export type BookingScalarFieldEnum = (typeof BookingScalarFieldEnum)[keyof typeof BookingScalarFieldEnum]

@@ -2,7 +2,16 @@ import Link from "next/link";
 import React from "react";
 import LoginForm from "@/components/login/LoginForm";
 
-const page = () => {
+interface LoginPageProps {
+  searchParams: Promise<{
+    returnTo?: string;
+  }>;
+}
+
+const page = async ({ searchParams }: LoginPageProps) => {
+  const params = await searchParams;
+  const signupUrl = params.returnTo ? `/signup?returnTo=${encodeURIComponent(params.returnTo)}` : "/signup";
+
   return (
     <div className="py-16">
       {/* Header */}
@@ -28,7 +37,7 @@ const page = () => {
         <p className="text-center text-md text-gray-600 mt-6">
           Doesn&apos;t have an account?{" "}
           <Link
-            href="/signup"
+            href={signupUrl}
             className="text-primary hover:text-primary/90 font-medium hover:underline"
           >
             Sign up

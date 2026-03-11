@@ -5,11 +5,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { signupAction } from "@/lib/actions/auth";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
 const SignupForm = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnTo = searchParams.get("returnTo");
   const {
     control,
     handleSubmit,
@@ -38,7 +40,8 @@ const SignupForm = () => {
         
         // Navigate to login page after a brief delay to show the toast
         setTimeout(() => {
-          router.push("/login");
+          const loginUrl = returnTo ? `/login?returnTo=${encodeURIComponent(returnTo)}` : "/login";
+          router.push(loginUrl);
         }, 500);
       } else {
         toast.error(response.error || "Failed to create account");

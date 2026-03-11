@@ -18,7 +18,7 @@ export default async function PublicLayout({
   return (
     <>
       <Navbar user={user} />
-      <main className="w-full bg-card min-h-[calc(100vh-80px)] mx-auto lg:px-20 md:px-16 sm:px-10 px-4 space-y-10">
+      <main className="w-full bg-card min-h-[calc(100vh-80px)] mx-auto lg:px-20 md:px-16 sm:px-10 px-4 space-y-10 py-12">
         {children}
       </main>
       <Footer />

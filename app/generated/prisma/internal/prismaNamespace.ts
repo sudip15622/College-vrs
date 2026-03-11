@@ -973,9 +973,22 @@ export const BookingScalarFieldEnum = {
   pricePerDay: 'pricePerDay',
   totalDays: 'totalDays',
   totalPrice: 'totalPrice',
+  renterContactNumber: 'renterContactNumber',
+  renterNotes: 'renterNotes',
+  ownerNotes: 'ownerNotes',
+  paymentMethod: 'paymentMethod',
+  isPaid: 'isPaid',
+  paidAt: 'paidAt',
+  cancelledAt: 'cancelledAt',
+  cancelledBy: 'cancelledBy',
+  cancellationReason: 'cancellationReason',
+  refundAmount: 'refundAmount',
+  refundStatus: 'refundStatus',
   status: 'status',
   bookedAt: 'bookedAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  completedAt: 'completedAt',
+  expiredAt: 'expiredAt'
 } as const
 
 export type BookingScalarFieldEnum = (typeof BookingScalarFieldEnum)[keyof typeof BookingScalarFieldEnum]
@@ -1169,16 +1182,30 @@ export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
 
 
 /**
- * Reference to a field of type 'Float'
+ * Reference to a field of type 'PaymentMethod'
  */
-export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
+export type EnumPaymentMethodFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentMethod'>
     
 
 
 /**
- * Reference to a field of type 'Float[]'
+ * Reference to a field of type 'PaymentMethod[]'
  */
-export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
+export type ListEnumPaymentMethodFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentMethod[]'>
+    
+
+
+/**
+ * Reference to a field of type 'RefundStatus'
+ */
+export type EnumRefundStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RefundStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'RefundStatus[]'
+ */
+export type ListEnumRefundStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RefundStatus[]'>
     
 
 
@@ -1193,6 +1220,20 @@ export type EnumBookingStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$Pr
  * Reference to a field of type 'BookingStatus[]'
  */
 export type ListEnumBookingStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BookingStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Float'
+ */
+export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
+    
+
+
+/**
+ * Reference to a field of type 'Float[]'
+ */
+export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
     
 
 /**

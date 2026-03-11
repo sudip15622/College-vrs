@@ -51,6 +51,7 @@ export type VehicleCondition = (typeof VehicleCondition)[keyof typeof VehicleCon
 
 
 export const BookingStatus = {
+  Pending: 'Pending',
   Confirmed: 'Confirmed',
   Active: 'Active',
   Completed: 'Completed',
@@ -58,3 +59,21 @@ export const BookingStatus = {
 } as const
 
 export type BookingStatus = (typeof BookingStatus)[keyof typeof BookingStatus]
+
+
+export const PaymentMethod = {
+  Khalti: 'Khalti',
+  Esewa: 'Esewa',
+  Cash: 'Cash'
+} as const
+
+export type PaymentMethod = (typeof PaymentMethod)[keyof typeof PaymentMethod]
+
+
+export const RefundStatus = {
+  Pending: 'Pending',
+  Processed: 'Processed',
+  Failed: 'Failed'
+} as const
+
+export type RefundStatus = (typeof RefundStatus)[keyof typeof RefundStatus]

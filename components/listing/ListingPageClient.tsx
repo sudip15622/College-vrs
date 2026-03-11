@@ -101,7 +101,7 @@ const ListingPageClient = ({ details, vehicleId }: ListingPageProps) => {
   ];
 
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-8 py-12">
+    <div className="w-full max-w-6xl mx-auto space-y-8">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-border w-full h-100 relative overflow-hidden rounded-2xl border border-border">
