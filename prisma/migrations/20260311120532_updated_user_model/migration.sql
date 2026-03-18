@@ -30,8 +30,7 @@ ADD COLUMN     "refundStatus" "RefundStatus",
 ADD COLUMN     "renterContactNumber" TEXT NOT NULL,
 ADD COLUMN     "renterNotes" TEXT,
 ALTER COLUMN "pricePerDay" SET DATA TYPE INTEGER,
-ALTER COLUMN "totalPrice" SET DATA TYPE INTEGER,
-ALTER COLUMN "status" SET DEFAULT 'Pending';
+ALTER COLUMN "totalPrice" SET DATA TYPE INTEGER;
 
 -- AlterTable
 ALTER TABLE "users" ALTER COLUMN "image" SET DEFAULT '/default_user.png';

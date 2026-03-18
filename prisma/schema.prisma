@@ -137,6 +137,7 @@ model Booking {
   paymentMethod PaymentMethod?
   isPaid Boolean @default(false)
   paidAt DateTime?
+  khaltiPidx String?
 
   //cancellation
   cancelledAt        DateTime?

@@ -1,10 +1,8 @@
 import React from "react";
-import Link from "next/link";
 import Image from "next/image";
-import { searchListings } from "@/lib/actions/listing";
-import { Button } from "@/components/ui/button";
+import { searchBookings } from "@/lib/actions/booking";
 import { Card, CardContent } from "@/components/ui/card";
-import ListingActionsMenu from "./ListingActionsMenu";
+import BookingActionsMenu from "./BookingActionsMenu";
 import {
   Table,
   TableBody,
@@ -21,50 +19,32 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Plus } from "lucide-react";
 
 interface PageProps {
   searchParams: Promise<{ page?: string }>;
 }
 
-const ListingsPage = async ({ searchParams }: PageProps) => {
+const BookingsPage = async ({ searchParams }: PageProps) => {
   const params = await searchParams;
   const currentPage = Number(params.page) || 1;
   const limit = 10;
 
-  const { listings, pagination } = await searchListings({
+  const { bookings, pagination } = await searchBookings({
     page: currentPage,
     limit,
-    showAll: true, // Show all listings for host dashboard
   });
 
   return (
     <div className="container">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold">Your Vehicles</h1>
-          <p className="text-muted-foreground">
-            Manage all your vehicle listings
-          </p>
-        </div>
-        <Link href="/hosting/listings/new">
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Add New Vehicle
-          </Button>
-        </Link>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold">All Bookings</h1>
+        <p className="text-muted-foreground">Manage all vehicle bookings</p>
       </div>
 
-      {listings.length === 0 ? (
+      {bookings.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <p className="text-muted-foreground mb-4">No vehicles listed yet</p>
-            <Link href="/hosting/listings/new">
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Your First Vehicle
-              </Button>
-            </Link>
+            <p className="text-muted-foreground">No bookings found</p>
           </CardContent>
         </Card>
       ) : (
@@ -72,29 +52,57 @@ const ListingsPage = async ({ searchParams }: PageProps) => {
           <Table className="table-fixed">
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[34%]">Vehicle</TableHead>
-                <TableHead className="w-[12%]">Type</TableHead>
-                <TableHead className="w-[14%]">Price/Day</TableHead>
-                <TableHead className="w-[12%]">Availability</TableHead>
-                <TableHead className="w-[18%] text-center">Bookings (U/A)</TableHead>
+                <TableHead className="w-[24%]">Booked By</TableHead>
+                <TableHead className="w-[24%]">Vehicle</TableHead>
+                <TableHead className="w-[20%]">Dates</TableHead>
+                <TableHead className="w-[10%]">Total Price</TableHead>
+                <TableHead className="w-[12%] text-center">Status</TableHead>
                 <TableHead className="w-[10%] text-center">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {listings.map((listing) => {
-                const imageData = listing.image as {
+              {bookings.map((booking) => {
+                const listingImage = booking.listing.image as {
                   url: string;
                   publicId: string;
                 };
+
+                const statusClassName =
+                  booking.status === "Confirmed"
+                    ? "bg-green-100 text-green-800"
+                    : booking.status === "Active"
+                      ? "bg-blue-100 text-blue-800"
+                      : booking.status === "Completed"
+                        ? "bg-gray-100 text-gray-800"
+                        : booking.status === "Pending"
+                          ? "bg-yellow-100 text-yellow-800"
+                          : "bg-red-100 text-red-800";
+
                 return (
-                  <TableRow key={listing.id}>
+                  <TableRow key={booking.id}>
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <div className="relative h-12 w-16 border border-border rounded-md overflow-hidden shrink-0">
-                          {imageData?.url ? (
+                        <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-border">
+                          <Image
+                            src={booking.user.image || "/default_user.png"}
+                            alt={booking.user.name}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                        <span className="max-w-52 truncate font-medium">
+                          {booking.user.name}
+                        </span>
+                      </div>
+                    </TableCell>
+
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className="relative h-12 w-16 shrink-0 overflow-hidden rounded-md border border-border">
+                          {listingImage?.url ? (
                             <Image
-                              src={imageData.url}
-                              alt={listing.name}
+                              src={listingImage.url}
+                              alt={booking.listing.name}
                               fill
                               className="object-cover"
                             />
@@ -102,31 +110,40 @@ const ListingsPage = async ({ searchParams }: PageProps) => {
                             <div className="h-full w-full bg-muted" />
                           )}
                         </div>
-                        <span className="font-medium truncate max-w-55">
-                          {listing.name}
+                        <span className="max-w-52 truncate font-medium">
+                          {booking.listing.name}
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell>{listing.type}</TableCell>
-                    <TableCell className="font-medium">
-                      ₹{listing.pricePerDay}
-                    </TableCell>
+
                     <TableCell>
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          listing.isAvailable
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
-                      >
-                        {listing.isAvailable ? "Available" : "Paused"}
+                      <span className="text-sm">
+                        {new Date(booking.startDate).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "2-digit",
+                          year: "numeric",
+                        })}
+                        {" - "}
+                        {new Date(booking.endDate).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "2-digit",
+                          year: "numeric",
+                        })}
                       </span>
                     </TableCell>
-                    <TableCell className="font-medium text-center">
-                      {listing.bookings.length}
-                    </TableCell>
+
+                    <TableCell className="font-medium">₹{booking.totalPrice}</TableCell>
+
                     <TableCell className="text-center">
-                      <ListingActionsMenu listingId={listing.id} />
+                      <span
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusClassName}`}
+                      >
+                        {booking.status}
+                      </span>
+                    </TableCell>
+
+                    <TableCell className="text-center">
+                      <BookingActionsMenu bookingId={booking.id} />
                     </TableCell>
                   </TableRow>
                 );
@@ -136,7 +153,6 @@ const ListingsPage = async ({ searchParams }: PageProps) => {
         </Card>
       )}
 
-      {/* Pagination */}
       {pagination.totalPages > 1 && (
         <div className="mt-6 flex justify-center">
           <Pagination>
@@ -145,7 +161,7 @@ const ListingsPage = async ({ searchParams }: PageProps) => {
                 <PaginationPrevious
                   href={
                     currentPage > 1
-                      ? `/hosting/listings?page=${currentPage - 1}`
+                      ? `/hosting/bookings?page=${currentPage - 1}`
                       : "#"
                   }
                   className={
@@ -156,16 +172,14 @@ const ListingsPage = async ({ searchParams }: PageProps) => {
 
               {Array.from(
                 { length: pagination.totalPages },
-                (_, i) => i + 1,
+                (_, index) => index + 1,
               ).map((page) => {
-                // Show first page, last page, current page, and pages around current page
                 const showPage =
                   page === 1 ||
                   page === pagination.totalPages ||
                   (page >= currentPage - 1 && page <= currentPage + 1);
 
                 if (!showPage) {
-                  // Show ellipsis for gaps
                   if (page === currentPage - 2 || page === currentPage + 2) {
                     return (
                       <PaginationItem key={page}>
@@ -179,7 +193,7 @@ const ListingsPage = async ({ searchParams }: PageProps) => {
                 return (
                   <PaginationItem key={page}>
                     <PaginationLink
-                      href={`/hosting/listings?page=${page}`}
+                      href={`/hosting/bookings?page=${page}`}
                       isActive={page === currentPage}
                     >
                       {page}
@@ -192,7 +206,7 @@ const ListingsPage = async ({ searchParams }: PageProps) => {
                 <PaginationNext
                   href={
                     currentPage < pagination.totalPages
-                      ? `/hosting/listings?page=${currentPage + 1}`
+                      ? `/hosting/bookings?page=${currentPage + 1}`
                       : "#"
                   }
                   className={
@@ -207,16 +221,15 @@ const ListingsPage = async ({ searchParams }: PageProps) => {
         </div>
       )}
 
-      {/* Pagination Info */}
-      {listings.length > 0 && (
-        <p className="text-center text-sm text-muted-foreground mt-4">
+      {bookings.length > 0 && (
+        <p className="mt-4 text-center text-sm text-muted-foreground">
           Showing {(currentPage - 1) * limit + 1} to{" "}
-          {Math.min(currentPage * limit, pagination.total)} of{" "}
-          {pagination.total} vehicles
+          {Math.min(currentPage * limit, pagination.total)} of {pagination.total} bookings
         </p>
       )}
     </div>
   );
 };
 
-export default ListingsPage;
+export default BookingsPage;
+

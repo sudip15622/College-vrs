@@ -85,15 +85,6 @@ const UserDropdown = ({ user }: UserDropdownProps) => {
         </DropdownMenuItem>
         <DropdownMenuItem>
           <Link
-            href="/wishlists"
-            className="w-full flex items-center gap-x-2 py-2 font-medium"
-          >
-            <FaRegHeart className="size-5"/>
-            WishLists
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem>
-          <Link
             href="/profile"
             className="w-full flex items-center gap-x-2 py-2 font-medium"
           >

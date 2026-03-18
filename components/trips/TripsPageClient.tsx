@@ -99,19 +99,19 @@ const TripsPageClient = ({ bookings }: TripsPageClientProps) => {
 
   const filteredBookings = bookings.filter((booking) => {
     if (filter === "all") return true;
-    
+
     const now = new Date();
     const startDate = new Date(booking.startDate);
     const endDate = new Date(booking.endDate);
 
     if (filter === "pending") {
-      return booking.status === "Pending" && !booking.isPaid;
+      return booking.status === "Pending";
     }
     if (filter === "upcoming") {
-      return booking.status === "Confirmed" && startDate > now;
+      return booking.status === "Confirmed";
     }
     if (filter === "active") {
-      return booking.status === "Active" || (booking.status === "Confirmed" && startDate <= now && endDate >= now);
+      return booking.status === "Active";
     }
     if (filter === "completed") {
       return booking.status === "Completed";
@@ -124,12 +124,13 @@ const TripsPageClient = ({ bookings }: TripsPageClientProps) => {
 
   const stats = {
     all: bookings.length,
-    pending: bookings.filter((b) => b.status === "Pending" && !b.isPaid).length,
+    pending: bookings.filter((b) => b.status === "Pending").length,
     upcoming: bookings.filter((b) => {
-      const now = new Date();
-      return b.status === "Confirmed" && new Date(b.startDate) > now;
+      return b.status === "Confirmed";
     }).length,
-    active: bookings.filter((b) => b.status === "Active").length,
+    active: bookings.filter((b) => {
+      return b.status === "Active";
+    }).length,
     completed: bookings.filter((b) => b.status === "Completed").length,
     cancelled: bookings.filter((b) => b.status === "Cancelled").length,
   };

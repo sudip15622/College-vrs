@@ -1,10 +1,9 @@
 import React from 'react'
-import Link from 'next/link'
 import Image from 'next/image'
 import { getListingById } from '@/lib/actions/listing'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { ArrowLeft, Edit } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Edit } from 'lucide-react'
 import { notFound } from 'next/navigation'
 
 const VehicleDetailPage = async ({ params }: { params: Promise<{ id: string }> }) => {
@@ -19,125 +18,152 @@ const VehicleDetailPage = async ({ params }: { params: Promise<{ id: string }> }
   const features = listing.features as string[] | null
 
   return (
-    <div className="container py-8">
-      <Link href="/hosting/listings">
-        <Button variant="ghost" className="mb-4">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Listings
-        </Button>
-      </Link>
+    <div className="space-y-6 pb-8">
+      <Card className="overflow-hidden p-0">
+        <div className="grid lg:grid-cols-[1.6fr_1fr]">
+          <div className="relative min-h-80 bg-muted">
+            {imageData?.url ? (
+              <Image
+                src={imageData.url}
+                alt={listing.name}
+                fill
+                className="object-cover"
+                priority
+              />
+            ) : (
+              <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+                No image available
+              </div>
+            )}
+          </div>
 
-      <div className="flex justify-between items-start mb-6">
-        <div>
-          <h1 className="text-3xl font-bold">{listing.name}</h1>
-          <p className="text-muted-foreground">{listing.type}</p>
+          <div className="flex flex-col justify-between p-6">
+            <div className="space-y-4">
+              <div className="space-y-1">
+                <p className="text-sm text-muted-foreground">{listing.type}</p>
+                <h1 className="text-3xl font-semibold leading-tight">{listing.name}</h1>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
+                  ₹{listing.pricePerDay.toLocaleString()}/day
+                </span>
+                <span
+                  className={`rounded-full px-3 py-1 text-sm font-medium ${
+                    listing.isAvailable
+                      ? 'bg-primary/10 text-primary'
+                      : 'bg-destructive/10 text-destructive'
+                  }`}
+                >
+                  {listing.isAvailable ? 'Available' : 'Unavailable'}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="rounded-md border p-3">
+                  <p className="text-muted-foreground">Fuel</p>
+                  <p className="font-medium">{listing.fuelType}</p>
+                </div>
+                <div className="rounded-md border p-3">
+                  <p className="text-muted-foreground">Transmission</p>
+                  <p className="font-medium">{listing.transmission}</p>
+                </div>
+                <div className="rounded-md border p-3">
+                  <p className="text-muted-foreground">Condition</p>
+                  <p className="font-medium">{listing.condition}</p>
+                </div>
+                <div className="rounded-md border p-3">
+                  <p className="text-muted-foreground">Vehicle Type</p>
+                  <p className="font-medium">{listing.type}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-6">
+              <Button className="w-full sm:w-auto">
+                <Edit className="mr-2 h-4 w-4" />
+                Edit Vehicle
+              </Button>
+            </div>
+          </div>
         </div>
-        <Button>
-          <Edit className="mr-2 h-4 w-4" />
-          Edit Vehicle
-        </Button>
-      </div>
+      </Card>
 
-      {/* Vehicle Image */}
-      {imageData?.url && (
-        <div className="relative h-96 w-full rounded-lg overflow-hidden mb-6">
-          <Image
-            src={imageData.url}
-            alt={listing.name}
-            fill
-            className="object-cover"
-            priority
-          />
-        </div>
-      )}
-
-      {/* Navigation Tabs */}
-      <div className="flex gap-2 mb-6 border-b">
-        <Link href={`/hosting/listings/${id}`}>
-          <Button variant="ghost" className="border-b-2 border-primary rounded-none">
-            Details
-          </Button>
-        </Link>
-        <Link href={`/hosting/listings/${id}/bookings`}>
-          <Button variant="ghost" className="rounded-none">
-            Bookings ({listing.bookings.length})
-          </Button>
-        </Link>
-        <Link href={`/hosting/listings/${id}/reviews`}>
-          <Button variant="ghost" className="rounded-none">
-            Reviews
-          </Button>
-        </Link>
-      </div>
-
-      {/* Vehicle Details */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-3">
         <Card>
           <CardHeader>
-            <CardTitle>Basic Information</CardTitle>
+            <CardTitle>Vehicle Details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Vehicle Type:</span>
+              <span className="text-muted-foreground">Vehicle Type</span>
               <span className="font-medium">{listing.type}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Price per Day:</span>
-              <span className="font-medium">₹{listing.pricePerDay}</span>
+              <span className="text-muted-foreground">Price per Day</span>
+              <span className="font-medium">₹{listing.pricePerDay.toLocaleString()}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Fuel Type:</span>
+              <span className="text-muted-foreground">Fuel Type</span>
               <span className="font-medium">{listing.fuelType}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Transmission:</span>
+              <span className="text-muted-foreground">Transmission</span>
               <span className="font-medium">{listing.transmission}</span>
             </div>
             {listing.engineCapacity && (
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Engine Capacity:</span>
+                <span className="text-muted-foreground">Engine Capacity</span>
                 <span className="font-medium">{listing.engineCapacity} CC</span>
               </div>
             )}
             {listing.mileage && (
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Mileage:</span>
+                <span className="text-muted-foreground">Mileage</span>
                 <span className="font-medium">{listing.mileage} km/l</span>
               </div>
             )}
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Condition:</span>
+              <span className="text-muted-foreground">Condition</span>
               <span className="font-medium">{listing.condition}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Status:</span>
-              <span className={listing.isAvailable ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}>
+              <span className="text-muted-foreground">Status</span>
+              <span
+                className={
+                  listing.isAvailable
+                    ? 'font-medium text-primary'
+                    : 'font-medium text-destructive'
+                }
+              >
                 {listing.isAvailable ? 'Available' : 'Unavailable'}
               </span>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Description</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground">{listing.description}</p>
+            <p className="leading-7 text-muted-foreground">
+              {listing.description || 'No description provided for this vehicle yet.'}
+            </p>
           </CardContent>
         </Card>
 
         {features && features.length > 0 && (
-          <Card className="md:col-span-2">
+          <Card className="lg:col-span-3">
             <CardHeader>
               <CardTitle>Features</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2.5">
                 {features.map((feature, index) => (
                   <span
                     key={index}
-                    className="px-3 py-1 bg-secondary text-secondary-foreground rounded-full text-sm"
+                    className="rounded-full border bg-secondary px-3 py-1 text-sm text-secondary-foreground"
                   >
                     {feature}
                   </span>

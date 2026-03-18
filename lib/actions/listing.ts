@@ -195,6 +195,7 @@ export async function getListingBookings(listingId: string) {
             id: true,
             name: true,
             email: true,
+            image: true,
           },
         },
       },

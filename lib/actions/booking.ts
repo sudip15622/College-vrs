@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { CreateBookingData } from "../schemas/booking";
 import prisma from "@/prisma";
 import { initiateKhaltiPayment } from "./payment";
+import { refundKhaltiPaymentByPidx } from "./payment";
 
 export async function InitiateBooking(
   listingId: string,
@@ -469,6 +470,45 @@ export async function cancelBooking(bookingId: string, reason?: string) {
       };
     }
 
+    let refundStatus: "Pending" | "Processed" | "Failed" | null = null;
+    let refundAmount: number | null = null;
+
+    if (booking.isPaid) {
+      if (booking.paymentMethod !== "Khalti") {
+        return {
+          success: false,
+          error: "Only Khalti paid bookings can be auto-refunded right now.",
+        };
+      }
+
+      const pidx = booking.khaltiPidx;
+      if (!pidx) {
+        return {
+          success: false,
+          error: "Payment reference not found for refund.",
+        };
+      }
+
+      const refundResult = await refundKhaltiPaymentByPidx(pidx);
+
+      if (!refundResult.success) {
+        await prisma.booking.update({
+          where: { id: bookingId },
+          data: {
+            refundStatus: "Failed",
+          },
+        });
+
+        return {
+          success: false,
+          error: refundResult.message || "Refund failed. Booking not cancelled.",
+        };
+      }
+
+      refundStatus = "Processed";
+      refundAmount = booking.totalPrice;
+    }
+
     // Update booking status
     await prisma.booking.update({
       where: { id: bookingId },
@@ -477,15 +517,325 @@ export async function cancelBooking(bookingId: string, reason?: string) {
         cancelledAt: new Date(),
         cancelledBy: session.user.id,
         cancellationReason: reason,
+        refundStatus,
+        refundAmount,
       },
     });
 
-    // If payment was made, handle refund logic here
-    // This would depend on your payment gateway's refund API
+    return {
+      success: true,
+      message: booking.isPaid
+        ? "Booking cancelled and full refund processed successfully"
+        : "Booking cancelled successfully",
+    };
+  } catch (error) {
+    console.error("Error cancelling booking:", error);
+    return {
+      success: false,
+      error: "Failed to cancel booking. Please try again.",
+    };
+  }
+}
+
+interface SearchBookingsParams {
+  limit?: number;
+  page?: number;
+}
+
+export async function searchBookings(params: SearchBookingsParams) {
+  const { limit = 10, page = 1 } = params;
+
+  const skip = (page - 1) * limit;
+
+  const total = await prisma.booking.count();
+
+  const bookings = await prisma.booking.findMany({
+    skip,
+    take: limit,
+    orderBy: {
+      bookedAt: "desc",
+    },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
+        },
+      },
+      listing: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
+        },
+      },
+    },
+  });
+
+  return {
+    bookings,
+    pagination: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+}
+
+// ============ ADMIN BOOKING ACTIONS ============
+
+// Admin: Confirm a pending booking
+export async function confirmBooking(bookingId: string) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return {
+        success: false,
+        error: "You must be logged in",
+      };
+    }
+
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+    });
+
+    if (!booking) {
+      return {
+        success: false,
+        error: "Booking not found",
+      };
+    }
+
+    // Check if booking is in Pending status
+    if (booking.status !== "Pending") {
+      return {
+        success: false,
+        error: `Cannot confirm a ${booking.status.toLowerCase()} booking`,
+      };
+    }
+
+    // Update booking status to Confirmed
+    await prisma.booking.update({
+      where: { id: bookingId },
+      data: {
+        status: "Confirmed",
+      },
+    });
 
     return {
       success: true,
-      message: "Booking cancelled successfully",
+      message: "Booking confirmed successfully",
+    };
+  } catch (error) {
+    console.error("Error confirming booking:", error);
+    return {
+      success: false,
+      error: "Failed to confirm booking. Please try again.",
+    };
+  }
+}
+
+// Admin: Mark booking as Active (rental in progress)
+export async function markBookingAsActive(bookingId: string) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return {
+        success: false,
+        error: "You must be logged in",
+      };
+    }
+
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+    });
+
+    if (!booking) {
+      return {
+        success: false,
+        error: "Booking not found",
+      };
+    }
+
+    // Check if booking is in Confirmed status
+    if (booking.status !== "Confirmed") {
+      return {
+        success: false,
+        error: `Cannot mark a ${booking.status.toLowerCase()} booking as active. Only confirmed bookings can be marked as active.`,
+      };
+    }
+
+    // Update booking status to Active
+    await prisma.booking.update({
+      where: { id: bookingId },
+      data: {
+        status: "Active",
+      },
+    });
+
+    return {
+      success: true,
+      message: "Booking marked as active successfully",
+    };
+  } catch (error) {
+    console.error("Error marking booking as active:", error);
+    return {
+      success: false,
+      error: "Failed to mark booking as active. Please try again.",
+    };
+  }
+}
+
+// Admin: Mark booking as Completed
+export async function markBookingAsCompleted(bookingId: string) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return {
+        success: false,
+        error: "You must be logged in",
+      };
+    }
+
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+    });
+
+    if (!booking) {
+      return {
+        success: false,
+        error: "Booking not found",
+      };
+    }
+
+    // Check if booking is in Active status
+    if (booking.status !== "Active") {
+      return {
+        success: false,
+        error: `Cannot mark a ${booking.status.toLowerCase()} booking as completed. Only active bookings can be completed.`,
+      };
+    }
+
+    // Update booking status to Completed
+    await prisma.booking.update({
+      where: { id: bookingId },
+      data: {
+        status: "Completed",
+        completedAt: new Date(),
+      },
+    });
+
+    return {
+      success: true,
+      message: "Booking marked as completed successfully",
+    };
+  } catch (error) {
+    console.error("Error marking booking as completed:", error);
+    return {
+      success: false,
+      error: "Failed to mark booking as completed. Please try again.",
+    };
+  }
+}
+
+// Admin: Cancel booking (with refund if paid)
+export async function adminCancelBooking(bookingId: string, reason?: string) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return {
+        success: false,
+        error: "You must be logged in",
+      };
+    }
+
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+    });
+
+    if (!booking) {
+      return {
+        success: false,
+        error: "Booking not found",
+      };
+    }
+
+    // Check if booking can be cancelled
+    if (booking.status === "Completed" || booking.status === "Cancelled") {
+      return {
+        success: false,
+        error: `Cannot cancel a ${booking.status.toLowerCase()} booking`,
+      };
+    }
+
+    // Check if booking is active - admin can still cancel but needs confirmation
+    if (booking.status === "Active") {
+      return {
+        success: false,
+        error: "Cannot cancel an active booking. The rental is already in progress.",
+      };
+    }
+
+    let refundStatus: "Pending" | "Processed" | "Failed" | null = null;
+    let refundAmount: number | null = null;
+
+    // Handle refund if payment was made
+    if (booking.isPaid) {
+      if (booking.paymentMethod !== "Khalti") {
+        return {
+          success: false,
+          error: "Only Khalti paid bookings can be auto-refunded right now.",
+        };
+      }
+
+      const pidx = booking.khaltiPidx;
+      if (!pidx) {
+        return {
+          success: false,
+          error: "Payment reference not found for refund.",
+        };
+      }
+
+      const refundResult = await refundKhaltiPaymentByPidx(pidx);
+
+      if (!refundResult.success) {
+        await prisma.booking.update({
+          where: { id: bookingId },
+          data: {
+            refundStatus: "Failed",
+          },
+        });
+
+        return {
+          success: false,
+          error: refundResult.message || "Refund failed. Booking not cancelled.",
+        };
+      }
+
+      refundStatus = "Processed";
+      refundAmount = booking.totalPrice;
+    }
+
+    // Update booking status
+    await prisma.booking.update({
+      where: { id: bookingId },
+      data: {
+        status: "Cancelled",
+        cancelledAt: new Date(),
+        cancelledBy: session.user.id,
+        cancellationReason: reason,
+        refundStatus,
+        refundAmount,
+      },
+    });
+
+    return {
+      success: true,
+      message: booking.isPaid
+        ? "Booking cancelled and full refund processed successfully"
+        : "Booking cancelled successfully",
     };
   } catch (error) {
     console.error("Error cancelling booking:", error);

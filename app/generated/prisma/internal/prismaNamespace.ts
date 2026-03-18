@@ -979,6 +979,7 @@ export const BookingScalarFieldEnum = {
   paymentMethod: 'paymentMethod',
   isPaid: 'isPaid',
   paidAt: 'paidAt',
+  khaltiPidx: 'khaltiPidx',
   cancelledAt: 'cancelledAt',
   cancelledBy: 'cancelledBy',
   cancellationReason: 'cancellationReason',

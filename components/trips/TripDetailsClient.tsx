@@ -4,8 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { format, formatDistanceToNow } from "date-fns";
 import { TbCurrencyRupeeNepalese } from "react-icons/tb";
-import { completeBooking } from "@/lib/actions/booking";
+import { completeBooking, cancelBooking } from "@/lib/actions/booking";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 import { 
   FaCheckCircle, 
   FaClock, 
@@ -36,6 +37,8 @@ interface Booking {
   paymentMethod: string | null;
   cancelledAt: Date | null;
   cancellationReason: string | null;
+  refundAmount: number | null;
+  refundStatus: string | null;
   expiredAt: Date | null;
   listing: {
     id: string;
@@ -56,6 +59,7 @@ interface TripDetailsClientProps {
 }
 
 const TripDetailsClient = ({ booking }: TripDetailsClientProps) => {
+  const router = useRouter();
   const [isCancelling, setIsCancelling] = useState(false);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState<string | null>(null);
@@ -77,6 +81,34 @@ const TripDetailsClient = ({ booking }: TripDetailsClientProps) => {
       console.error("Payment initiation error:", error);
       toast.error("Something went wrong. Please try again.");
       setIsProcessingPayment(false);
+    }
+  };
+
+  const handleCancelBooking = async () => {
+    const confirmed = window.confirm(
+      booking.isPaid
+        ? "Are you sure you want to cancel this booking? A full refund will be processed to your original Khalti payment method."
+        : "Are you sure you want to cancel this booking?",
+    );
+
+    if (!confirmed) return;
+
+    setIsCancelling(true);
+    try {
+      const result = await cancelBooking(booking.id, "Cancelled by user");
+
+      if (!result.success) {
+        toast.error(result.error || "Failed to cancel booking.");
+        return;
+      }
+
+      toast.success(result.message || "Booking cancelled successfully.");
+      router.refresh();
+    } catch (error) {
+      console.error("Cancellation error:", error);
+      toast.error("Something went wrong while cancelling booking.");
+    } finally {
+      setIsCancelling(false);
     }
   };
 
@@ -336,6 +368,23 @@ const TripDetailsClient = ({ booking }: TripDetailsClientProps) => {
                     <p className="text-sm">{booking.cancellationReason}</p>
                   </div>
                 )}
+                {booking.isPaid && (
+                  <>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Refund Status</p>
+                      <p className="text-sm font-medium">{booking.refundStatus || "Pending"}</p>
+                    </div>
+                    {booking.refundAmount !== null && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">Refund Amount</p>
+                        <p className="text-sm font-medium flex items-center gap-0.5">
+                          <TbCurrencyRupeeNepalese className="w-3.5 h-3.5" />
+                          {booking.refundAmount.toLocaleString()}
+                        </p>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
             </div>
           )}
@@ -443,10 +492,7 @@ const TripDetailsClient = ({ booking }: TripDetailsClientProps) => {
                   className="w-full"
                   variant="destructive"
                   disabled={isCancelling}
-                  onClick={() => {
-                    // Will implement later
-                    console.log("Cancel booking");
-                  }}
+                  onClick={handleCancelBooking}
                 >
                   {isCancelling ? "Cancelling..." : "Cancel Booking"}
                 </Button>

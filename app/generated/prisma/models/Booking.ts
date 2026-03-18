@@ -55,6 +55,7 @@ export type BookingMinAggregateOutputType = {
   paymentMethod: $Enums.PaymentMethod | null
   isPaid: boolean | null
   paidAt: Date | null
+  khaltiPidx: string | null
   cancelledAt: Date | null
   cancelledBy: string | null
   cancellationReason: string | null
@@ -82,6 +83,7 @@ export type BookingMaxAggregateOutputType = {
   paymentMethod: $Enums.PaymentMethod | null
   isPaid: boolean | null
   paidAt: Date | null
+  khaltiPidx: string | null
   cancelledAt: Date | null
   cancelledBy: string | null
   cancellationReason: string | null
@@ -109,6 +111,7 @@ export type BookingCountAggregateOutputType = {
   paymentMethod: number
   isPaid: number
   paidAt: number
+  khaltiPidx: number
   cancelledAt: number
   cancelledBy: number
   cancellationReason: number
@@ -152,6 +155,7 @@ export type BookingMinAggregateInputType = {
   paymentMethod?: true
   isPaid?: true
   paidAt?: true
+  khaltiPidx?: true
   cancelledAt?: true
   cancelledBy?: true
   cancellationReason?: true
@@ -179,6 +183,7 @@ export type BookingMaxAggregateInputType = {
   paymentMethod?: true
   isPaid?: true
   paidAt?: true
+  khaltiPidx?: true
   cancelledAt?: true
   cancelledBy?: true
   cancellationReason?: true
@@ -206,6 +211,7 @@ export type BookingCountAggregateInputType = {
   paymentMethod?: true
   isPaid?: true
   paidAt?: true
+  khaltiPidx?: true
   cancelledAt?: true
   cancelledBy?: true
   cancellationReason?: true
@@ -320,6 +326,7 @@ export type BookingGroupByOutputType = {
   paymentMethod: $Enums.PaymentMethod | null
   isPaid: boolean
   paidAt: Date | null
+  khaltiPidx: string | null
   cancelledAt: Date | null
   cancelledBy: string | null
   cancellationReason: string | null
@@ -370,6 +377,7 @@ export type BookingWhereInput = {
   paymentMethod?: Prisma.EnumPaymentMethodNullableFilter<"Booking"> | $Enums.PaymentMethod | null
   isPaid?: Prisma.BoolFilter<"Booking"> | boolean
   paidAt?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
+  khaltiPidx?: Prisma.StringNullableFilter<"Booking"> | string | null
   cancelledAt?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
   cancelledBy?: Prisma.StringNullableFilter<"Booking"> | string | null
   cancellationReason?: Prisma.StringNullableFilter<"Booking"> | string | null
@@ -399,6 +407,7 @@ export type BookingOrderByWithRelationInput = {
   paymentMethod?: Prisma.SortOrderInput | Prisma.SortOrder
   isPaid?: Prisma.SortOrder
   paidAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  khaltiPidx?: Prisma.SortOrderInput | Prisma.SortOrder
   cancelledAt?: Prisma.SortOrderInput | Prisma.SortOrder
   cancelledBy?: Prisma.SortOrderInput | Prisma.SortOrder
   cancellationReason?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -431,6 +440,7 @@ export type BookingWhereUniqueInput = Prisma.AtLeast<{
   paymentMethod?: Prisma.EnumPaymentMethodNullableFilter<"Booking"> | $Enums.PaymentMethod | null
   isPaid?: Prisma.BoolFilter<"Booking"> | boolean
   paidAt?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
+  khaltiPidx?: Prisma.StringNullableFilter<"Booking"> | string | null
   cancelledAt?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
   cancelledBy?: Prisma.StringNullableFilter<"Booking"> | string | null
   cancellationReason?: Prisma.StringNullableFilter<"Booking"> | string | null
@@ -460,6 +470,7 @@ export type BookingOrderByWithAggregationInput = {
   paymentMethod?: Prisma.SortOrderInput | Prisma.SortOrder
   isPaid?: Prisma.SortOrder
   paidAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  khaltiPidx?: Prisma.SortOrderInput | Prisma.SortOrder
   cancelledAt?: Prisma.SortOrderInput | Prisma.SortOrder
   cancelledBy?: Prisma.SortOrderInput | Prisma.SortOrder
   cancellationReason?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -495,6 +506,7 @@ export type BookingScalarWhereWithAggregatesInput = {
   paymentMethod?: Prisma.EnumPaymentMethodNullableWithAggregatesFilter<"Booking"> | $Enums.PaymentMethod | null
   isPaid?: Prisma.BoolWithAggregatesFilter<"Booking"> | boolean
   paidAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Booking"> | Date | string | null
+  khaltiPidx?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
   cancelledAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Booking"> | Date | string | null
   cancelledBy?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
   cancellationReason?: Prisma.StringNullableWithAggregatesFilter<"Booking"> | string | null
@@ -520,6 +532,7 @@ export type BookingCreateInput = {
   paymentMethod?: $Enums.PaymentMethod | null
   isPaid?: boolean
   paidAt?: Date | string | null
+  khaltiPidx?: string | null
   cancelledAt?: Date | string | null
   cancelledBy?: string | null
   cancellationReason?: string | null
@@ -549,6 +562,7 @@ export type BookingUncheckedCreateInput = {
   paymentMethod?: $Enums.PaymentMethod | null
   isPaid?: boolean
   paidAt?: Date | string | null
+  khaltiPidx?: string | null
   cancelledAt?: Date | string | null
   cancelledBy?: string | null
   cancellationReason?: string | null
@@ -574,6 +588,7 @@ export type BookingUpdateInput = {
   paymentMethod?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   isPaid?: Prisma.BoolFieldUpdateOperationsInput | boolean
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  khaltiPidx?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancellationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -603,6 +618,7 @@ export type BookingUncheckedUpdateInput = {
   paymentMethod?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   isPaid?: Prisma.BoolFieldUpdateOperationsInput | boolean
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  khaltiPidx?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancellationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -630,6 +646,7 @@ export type BookingCreateManyInput = {
   paymentMethod?: $Enums.PaymentMethod | null
   isPaid?: boolean
   paidAt?: Date | string | null
+  khaltiPidx?: string | null
   cancelledAt?: Date | string | null
   cancelledBy?: string | null
   cancellationReason?: string | null
@@ -655,6 +672,7 @@ export type BookingUpdateManyMutationInput = {
   paymentMethod?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   isPaid?: Prisma.BoolFieldUpdateOperationsInput | boolean
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  khaltiPidx?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancellationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -682,6 +700,7 @@ export type BookingUncheckedUpdateManyInput = {
   paymentMethod?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   isPaid?: Prisma.BoolFieldUpdateOperationsInput | boolean
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  khaltiPidx?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancellationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -719,6 +738,7 @@ export type BookingCountOrderByAggregateInput = {
   paymentMethod?: Prisma.SortOrder
   isPaid?: Prisma.SortOrder
   paidAt?: Prisma.SortOrder
+  khaltiPidx?: Prisma.SortOrder
   cancelledAt?: Prisma.SortOrder
   cancelledBy?: Prisma.SortOrder
   cancellationReason?: Prisma.SortOrder
@@ -753,6 +773,7 @@ export type BookingMaxOrderByAggregateInput = {
   paymentMethod?: Prisma.SortOrder
   isPaid?: Prisma.SortOrder
   paidAt?: Prisma.SortOrder
+  khaltiPidx?: Prisma.SortOrder
   cancelledAt?: Prisma.SortOrder
   cancelledBy?: Prisma.SortOrder
   cancellationReason?: Prisma.SortOrder
@@ -780,6 +801,7 @@ export type BookingMinOrderByAggregateInput = {
   paymentMethod?: Prisma.SortOrder
   isPaid?: Prisma.SortOrder
   paidAt?: Prisma.SortOrder
+  khaltiPidx?: Prisma.SortOrder
   cancelledAt?: Prisma.SortOrder
   cancelledBy?: Prisma.SortOrder
   cancellationReason?: Prisma.SortOrder
@@ -908,6 +930,7 @@ export type BookingCreateWithoutUserInput = {
   paymentMethod?: $Enums.PaymentMethod | null
   isPaid?: boolean
   paidAt?: Date | string | null
+  khaltiPidx?: string | null
   cancelledAt?: Date | string | null
   cancelledBy?: string | null
   cancellationReason?: string | null
@@ -935,6 +958,7 @@ export type BookingUncheckedCreateWithoutUserInput = {
   paymentMethod?: $Enums.PaymentMethod | null
   isPaid?: boolean
   paidAt?: Date | string | null
+  khaltiPidx?: string | null
   cancelledAt?: Date | string | null
   cancelledBy?: string | null
   cancellationReason?: string | null
@@ -991,6 +1015,7 @@ export type BookingScalarWhereInput = {
   paymentMethod?: Prisma.EnumPaymentMethodNullableFilter<"Booking"> | $Enums.PaymentMethod | null
   isPaid?: Prisma.BoolFilter<"Booking"> | boolean
   paidAt?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
+  khaltiPidx?: Prisma.StringNullableFilter<"Booking"> | string | null
   cancelledAt?: Prisma.DateTimeNullableFilter<"Booking"> | Date | string | null
   cancelledBy?: Prisma.StringNullableFilter<"Booking"> | string | null
   cancellationReason?: Prisma.StringNullableFilter<"Booking"> | string | null
@@ -1016,6 +1041,7 @@ export type BookingCreateWithoutListingInput = {
   paymentMethod?: $Enums.PaymentMethod | null
   isPaid?: boolean
   paidAt?: Date | string | null
+  khaltiPidx?: string | null
   cancelledAt?: Date | string | null
   cancelledBy?: string | null
   cancellationReason?: string | null
@@ -1043,6 +1069,7 @@ export type BookingUncheckedCreateWithoutListingInput = {
   paymentMethod?: $Enums.PaymentMethod | null
   isPaid?: boolean
   paidAt?: Date | string | null
+  khaltiPidx?: string | null
   cancelledAt?: Date | string | null
   cancelledBy?: string | null
   cancellationReason?: string | null
@@ -1095,6 +1122,7 @@ export type BookingCreateManyUserInput = {
   paymentMethod?: $Enums.PaymentMethod | null
   isPaid?: boolean
   paidAt?: Date | string | null
+  khaltiPidx?: string | null
   cancelledAt?: Date | string | null
   cancelledBy?: string | null
   cancellationReason?: string | null
@@ -1120,6 +1148,7 @@ export type BookingUpdateWithoutUserInput = {
   paymentMethod?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   isPaid?: Prisma.BoolFieldUpdateOperationsInput | boolean
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  khaltiPidx?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancellationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1147,6 +1176,7 @@ export type BookingUncheckedUpdateWithoutUserInput = {
   paymentMethod?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   isPaid?: Prisma.BoolFieldUpdateOperationsInput | boolean
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  khaltiPidx?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancellationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1173,6 +1203,7 @@ export type BookingUncheckedUpdateManyWithoutUserInput = {
   paymentMethod?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   isPaid?: Prisma.BoolFieldUpdateOperationsInput | boolean
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  khaltiPidx?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancellationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1199,6 +1230,7 @@ export type BookingCreateManyListingInput = {
   paymentMethod?: $Enums.PaymentMethod | null
   isPaid?: boolean
   paidAt?: Date | string | null
+  khaltiPidx?: string | null
   cancelledAt?: Date | string | null
   cancelledBy?: string | null
   cancellationReason?: string | null
@@ -1224,6 +1256,7 @@ export type BookingUpdateWithoutListingInput = {
   paymentMethod?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   isPaid?: Prisma.BoolFieldUpdateOperationsInput | boolean
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  khaltiPidx?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancellationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1251,6 +1284,7 @@ export type BookingUncheckedUpdateWithoutListingInput = {
   paymentMethod?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   isPaid?: Prisma.BoolFieldUpdateOperationsInput | boolean
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  khaltiPidx?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancellationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1277,6 +1311,7 @@ export type BookingUncheckedUpdateManyWithoutListingInput = {
   paymentMethod?: Prisma.NullableEnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod | null
   isPaid?: Prisma.BoolFieldUpdateOperationsInput | boolean
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  khaltiPidx?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cancellationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1306,6 +1341,7 @@ export type BookingSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   paymentMethod?: boolean
   isPaid?: boolean
   paidAt?: boolean
+  khaltiPidx?: boolean
   cancelledAt?: boolean
   cancelledBy?: boolean
   cancellationReason?: boolean
@@ -1335,6 +1371,7 @@ export type BookingSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   paymentMethod?: boolean
   isPaid?: boolean
   paidAt?: boolean
+  khaltiPidx?: boolean
   cancelledAt?: boolean
   cancelledBy?: boolean
   cancellationReason?: boolean
@@ -1364,6 +1401,7 @@ export type BookingSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   paymentMethod?: boolean
   isPaid?: boolean
   paidAt?: boolean
+  khaltiPidx?: boolean
   cancelledAt?: boolean
   cancelledBy?: boolean
   cancellationReason?: boolean
@@ -1393,6 +1431,7 @@ export type BookingSelectScalar = {
   paymentMethod?: boolean
   isPaid?: boolean
   paidAt?: boolean
+  khaltiPidx?: boolean
   cancelledAt?: boolean
   cancelledBy?: boolean
   cancellationReason?: boolean
@@ -1405,7 +1444,7 @@ export type BookingSelectScalar = {
   expiredAt?: boolean
 }
 
-export type BookingOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "listingId" | "startDate" | "endDate" | "pricePerDay" | "totalDays" | "totalPrice" | "renterContactNumber" | "renterNotes" | "ownerNotes" | "paymentMethod" | "isPaid" | "paidAt" | "cancelledAt" | "cancelledBy" | "cancellationReason" | "refundAmount" | "refundStatus" | "status" | "bookedAt" | "updatedAt" | "completedAt" | "expiredAt", ExtArgs["result"]["booking"]>
+export type BookingOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "listingId" | "startDate" | "endDate" | "pricePerDay" | "totalDays" | "totalPrice" | "renterContactNumber" | "renterNotes" | "ownerNotes" | "paymentMethod" | "isPaid" | "paidAt" | "khaltiPidx" | "cancelledAt" | "cancelledBy" | "cancellationReason" | "refundAmount" | "refundStatus" | "status" | "bookedAt" | "updatedAt" | "completedAt" | "expiredAt", ExtArgs["result"]["booking"]>
 export type BookingInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   listing?: boolean | Prisma.ListingDefaultArgs<ExtArgs>
@@ -1440,6 +1479,7 @@ export type $BookingPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     paymentMethod: $Enums.PaymentMethod | null
     isPaid: boolean
     paidAt: Date | null
+    khaltiPidx: string | null
     cancelledAt: Date | null
     cancelledBy: string | null
     cancellationReason: string | null
@@ -1889,6 +1929,7 @@ export interface BookingFieldRefs {
   readonly paymentMethod: Prisma.FieldRef<"Booking", 'PaymentMethod'>
   readonly isPaid: Prisma.FieldRef<"Booking", 'Boolean'>
   readonly paidAt: Prisma.FieldRef<"Booking", 'DateTime'>
+  readonly khaltiPidx: Prisma.FieldRef<"Booking", 'String'>
   readonly cancelledAt: Prisma.FieldRef<"Booking", 'DateTime'>
   readonly cancelledBy: Prisma.FieldRef<"Booking", 'String'>
   readonly cancellationReason: Prisma.FieldRef<"Booking", 'String'>
