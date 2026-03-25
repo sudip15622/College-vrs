@@ -21,6 +21,7 @@ import {
 import { IoMdArrowRoundBack } from "react-icons/io";
 import { MdCheckCircle, MdDirectionsBike } from "react-icons/md";
 import { Button } from "@/components/ui/button";
+import Confirmation from "@/components/confirmation/Confirmation";
 
 interface Booking {
   id: string;
@@ -61,6 +62,7 @@ interface TripDetailsClientProps {
 const TripDetailsClient = ({ booking }: TripDetailsClientProps) => {
   const router = useRouter();
   const [isCancelling, setIsCancelling] = useState(false);
+  const [isCancelConfirmOpen, setIsCancelConfirmOpen] = useState(false);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState<string | null>(null);
   const [isExpired, setIsExpired] = useState(false);
@@ -85,21 +87,13 @@ const TripDetailsClient = ({ booking }: TripDetailsClientProps) => {
   };
 
   const handleCancelBooking = async () => {
-    const confirmed = window.confirm(
-      booking.isPaid
-        ? "Are you sure you want to cancel this booking? A full refund will be processed to your original Khalti payment method."
-        : "Are you sure you want to cancel this booking?",
-    );
-
-    if (!confirmed) return;
-
     setIsCancelling(true);
     try {
       const result = await cancelBooking(booking.id, "Cancelled by user");
 
       if (!result.success) {
         toast.error(result.error || "Failed to cancel booking.");
-        return;
+        throw new Error(result.error || "Failed to cancel booking.");
       }
 
       toast.success(result.message || "Booking cancelled successfully.");
@@ -107,6 +101,7 @@ const TripDetailsClient = ({ booking }: TripDetailsClientProps) => {
     } catch (error) {
       console.error("Cancellation error:", error);
       toast.error("Something went wrong while cancelling booking.");
+      throw error;
     } finally {
       setIsCancelling(false);
     }
@@ -492,7 +487,7 @@ const TripDetailsClient = ({ booking }: TripDetailsClientProps) => {
                   className="w-full"
                   variant="destructive"
                   disabled={isCancelling}
-                  onClick={handleCancelBooking}
+                  onClick={() => setIsCancelConfirmOpen(true)}
                 >
                   {isCancelling ? "Cancelling..." : "Cancel Booking"}
                 </Button>
@@ -508,6 +503,20 @@ const TripDetailsClient = ({ booking }: TripDetailsClientProps) => {
           </div>
         </div>
       </div>
+
+      <Confirmation
+        isOpen={isCancelConfirmOpen}
+        onClose={() => setIsCancelConfirmOpen(false)}
+        title="Cancel Booking?"
+        description={
+          booking.isPaid
+            ? "Are you sure you want to cancel this booking? A full refund will be processed to your original Khalti payment method."
+            : "Are you sure you want to cancel this booking?"
+        }
+        actionButtonName="Cancel Booking"
+        actionFunction={handleCancelBooking}
+        isDangerous
+      />
     </div>
   );
 };

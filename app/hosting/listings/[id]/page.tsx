@@ -1,5 +1,6 @@
 import React from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { getListingById } from '@/lib/actions/listing'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -80,10 +81,12 @@ const VehicleDetailPage = async ({ params }: { params: Promise<{ id: string }> }
             </div>
 
             <div className="pt-6">
-              <Button className="w-full sm:w-auto">
-                <Edit className="mr-2 h-4 w-4" />
-                Edit Vehicle
-              </Button>
+              <Link href={`/hosting/listings/${listing.id}/edit`}>
+                <Button className="w-full sm:w-auto">
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit Vehicle
+                </Button>
+              </Link>
             </div>
           </div>
         </div>

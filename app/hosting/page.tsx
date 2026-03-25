@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bike, Calendar, Users, TrendingUp } from "lucide-react";
+import RevenueTrend from "@/components/dashboard/RevenueTrend";
 
 const HostingDashboard = () => {
   const stats = [
@@ -62,14 +63,7 @@ const HostingDashboard = () => {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
-          <CardHeader>
-            <CardTitle>Recent Bookings</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">No recent bookings</p>
-          </CardContent>
-        </Card>
+        <RevenueTrend />
         <Card className="col-span-3">
           <CardHeader>
             <CardTitle>Quick Actions</CardTitle>

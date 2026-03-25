@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Calendar, Edit, Eye, MoreHorizontal, Trash2 } from 'lucide-react'
+import { Calendar, Edit, Eye, MoreHorizontal, Settings } from 'lucide-react'
 
 type ListingActionsMenuProps = {
   listingId: string
@@ -56,15 +56,16 @@ const ListingActionsMenu = ({ listingId }: ListingActionsMenuProps) => {
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link href={`/hosting/listings/${listingId}`} className="cursor-pointer">
+          <Link href={`/hosting/listings/${listingId}/edit`} className="cursor-pointer">
             <Edit className="mr-2 h-4 w-4" />
             Edit Vehicle
           </Link>
         </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem variant="destructive" className="cursor-pointer">
-          <Trash2 className="mr-2 h-4 w-4" />
-          Delete Vehicle
+        <DropdownMenuItem asChild>
+          <Link href={`/hosting/listings/${listingId}/settings`} className="cursor-pointer">
+            <Settings className="mr-2 h-4 w-4" />
+            Settings
+          </Link>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

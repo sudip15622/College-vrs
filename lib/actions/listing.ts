@@ -234,6 +234,50 @@ interface CreateListingActionReturn {
   listingId?: string;
 }
 
+interface UpdateListingActionParams {
+  listingId: string;
+  formData: {
+    type: "Bike" | "Scooter";
+    name: string;
+    description: string;
+    fuelType: "Petrol" | "Electric";
+    transmission: "Manual" | "Automatic";
+    engineCapacity?: string;
+    mileage?: string;
+    pricePerDay: string;
+    condition: "Excellent" | "Good" | "Fair";
+    features: string[];
+  };
+  imageData?: string;
+}
+
+interface UpdateListingActionReturn {
+  success: boolean;
+  error?: string;
+  message?: string;
+}
+
+interface ToggleListingAvailabilityActionParams {
+  listingId: string;
+  isAvailable: boolean;
+}
+
+interface ToggleListingAvailabilityActionReturn {
+  success: boolean;
+  error?: string;
+  message?: string;
+}
+
+interface DeleteListingActionParams {
+  listingId: string;
+}
+
+interface DeleteListingActionReturn {
+  success: boolean;
+  error?: string;
+  message?: string;
+}
+
 export async function createListingAction(
   params: CreateListingActionParams
 ): Promise<CreateListingActionReturn> {
@@ -326,6 +370,275 @@ export async function createListingAction(
     return {
       success: false,
       error: "Failed to create listing. Please try again.",
+    };
+  }
+}
+
+export async function updateListingAction(
+  params: UpdateListingActionParams
+): Promise<UpdateListingActionReturn> {
+  try {
+    const session = await auth();
+    if (!session || !session.user) {
+      return {
+        success: false,
+        error: "You must be logged in to update a listing",
+      };
+    }
+
+    const existingListing = await prisma.listing.findUnique({
+      where: { id: params.listingId },
+      select: { id: true, image: true },
+    });
+
+    if (!existingListing) {
+      return {
+        success: false,
+        error: "Listing not found",
+      };
+    }
+
+    const validatedData = CreateListingSchema.safeParse(params.formData);
+
+    if (!validatedData.success) {
+      const firstError = validatedData.error.issues[0];
+      return {
+        success: false,
+        error: firstError?.message || "Invalid form data. Please check your inputs.",
+      };
+    }
+
+    const data = validatedData.data;
+
+    const duplicateNameListing = await prisma.listing.findFirst({
+      where: {
+        name: data.name,
+        id: {
+          not: params.listingId,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (duplicateNameListing) {
+      return {
+        success: false,
+        error: "A vehicle with this name already exists. Please use a different name.",
+      };
+    }
+
+    await prisma.listing.update({
+      where: {
+        id: params.listingId,
+      },
+      data: {
+        type: data.type,
+        name: data.name,
+        description: data.description,
+        fuelType: data.fuelType,
+        transmission: data.transmission,
+        engineCapacity: data.engineCapacity || null,
+        mileage: data.mileage || null,
+        pricePerDay: data.pricePerDay,
+        condition: data.condition,
+        features: data.features,
+        ...(params.imageData
+          ? {
+              image: {
+                url: params.imageData,
+                publicId: "",
+              },
+            }
+          : {}),
+      },
+    });
+
+    revalidatePath("/");
+    revalidatePath("/(public)/vehicles");
+    revalidatePath("/hosting/listings");
+    revalidatePath(`/hosting/listings/${params.listingId}`);
+    revalidatePath(`/hosting/listings/${params.listingId}/edit`);
+
+    return {
+      success: true,
+      message: "Listing updated successfully!",
+    };
+  } catch (error) {
+    console.error("Error updating listing:", error);
+
+    if (error instanceof Error && error.message.includes("Unique constraint")) {
+      return {
+        success: false,
+        error: "A vehicle with this name already exists.",
+      };
+    }
+
+    return {
+      success: false,
+      error: "Failed to update listing. Please try again.",
+    };
+  }
+}
+
+export async function getListingSettingsById(id: string) {
+  try {
+    const listing = await prisma.listing.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        isAvailable: true,
+      },
+    });
+
+    if (!listing) {
+      return null;
+    }
+
+    const [pendingBookings, confirmedBookings, activeBookings] = await Promise.all([
+      prisma.booking.count({
+        where: {
+          listingId: id,
+          status: "Pending",
+        },
+      }),
+      prisma.booking.count({
+        where: {
+          listingId: id,
+          status: "Confirmed",
+        },
+      }),
+      prisma.booking.count({
+        where: {
+          listingId: id,
+          status: "Active",
+        },
+      }),
+    ]);
+
+    return {
+      ...listing,
+      pendingBookings,
+      confirmedBookings,
+      activeBookings,
+      blockingBookingsCount: pendingBookings + activeBookings + confirmedBookings,
+    };
+  } catch (error) {
+    console.error("Error fetching listing settings by ID:", error);
+    return null;
+  }
+}
+
+export async function toggleListingAvailabilityAction(
+  params: ToggleListingAvailabilityActionParams
+): Promise<ToggleListingAvailabilityActionReturn> {
+  try {
+    const session = await auth();
+    if (!session || !session.user) {
+      return {
+        success: false,
+        error: "You must be logged in to update availability",
+      };
+    }
+
+    const listing = await prisma.listing.findUnique({
+      where: { id: params.listingId },
+      select: { id: true, name: true },
+    });
+
+    if (!listing) {
+      return {
+        success: false,
+        error: "Listing not found",
+      };
+    }
+
+    await prisma.listing.update({
+      where: { id: params.listingId },
+      data: { isAvailable: params.isAvailable },
+    });
+
+    revalidatePath("/");
+    revalidatePath("/(public)/vehicles");
+    revalidatePath("/hosting/listings");
+    revalidatePath(`/hosting/listings/${params.listingId}`);
+    revalidatePath(`/hosting/listings/${params.listingId}/settings`);
+
+    return {
+      success: true,
+      message: params.isAvailable
+        ? "Vehicle is now available for booking"
+        : "Vehicle has been paused",
+    };
+  } catch (error) {
+    console.error("Error toggling listing availability:", error);
+    return {
+      success: false,
+      error: "Failed to update availability. Please try again.",
+    };
+  }
+}
+
+export async function deleteListingAction(
+  params: DeleteListingActionParams
+): Promise<DeleteListingActionReturn> {
+  try {
+    const session = await auth();
+    if (!session || !session.user) {
+      return {
+        success: false,
+        error: "You must be logged in to delete a vehicle",
+      };
+    }
+
+    const listing = await prisma.listing.findUnique({
+      where: { id: params.listingId },
+      select: { id: true, name: true },
+    });
+
+    if (!listing) {
+      return {
+        success: false,
+        error: "Listing not found",
+      };
+    }
+
+    const blockingBookingsCount = await prisma.booking.count({
+      where: {
+        listingId: params.listingId,
+        status: {
+          in: ["Pending", "Confirmed", "Active"],
+        },
+      },
+    });
+
+    if (blockingBookingsCount > 0) {
+      return {
+        success: false,
+        error:
+          "This vehicle cannot be deleted because it has pending, confirmed or active bookings.",
+      };
+    }
+
+    await prisma.listing.delete({
+      where: { id: params.listingId },
+    });
+
+    revalidatePath("/");
+    revalidatePath("/(public)/vehicles");
+    revalidatePath("/hosting/listings");
+
+    return {
+      success: true,
+      message: "Vehicle deleted successfully",
+    };
+  } catch (error) {
+    console.error("Error deleting listing:", error);
+    return {
+      success: false,
+      error: "Failed to delete vehicle. Please try again.",
     };
   }
 }

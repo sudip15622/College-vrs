@@ -74,8 +74,8 @@ const ListingsPage = async ({ searchParams }: PageProps) => {
               <TableRow>
                 <TableHead className="w-[34%]">Vehicle</TableHead>
                 <TableHead className="w-[12%]">Type</TableHead>
-                <TableHead className="w-[14%]">Price/Day</TableHead>
-                <TableHead className="w-[12%]">Availability</TableHead>
+                <TableHead className="w-[12%]">Price/Day</TableHead>
+                <TableHead className="w-[14%] text-center">Availability</TableHead>
                 <TableHead className="w-[18%] text-center">Bookings (U/A)</TableHead>
                 <TableHead className="w-[10%] text-center">Actions</TableHead>
               </TableRow>
@@ -111,7 +111,7 @@ const ListingsPage = async ({ searchParams }: PageProps) => {
                     <TableCell className="font-medium">
                       ₹{listing.pricePerDay}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="text-center">
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                           listing.isAvailable

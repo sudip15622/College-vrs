@@ -1,6 +1,6 @@
 "use server";
 
-import { signIn, signOut } from "@/auth";
+import { signIn, signOut, auth } from "@/auth";
 import { customHash, generateSalt } from "../hash";
 import prisma from "@/prisma";
 import { LoginSchema, LoginType } from "../schemas/login";
@@ -139,6 +139,228 @@ export async function signOutAction(): Promise<AuthActionReturn> {
     return {
       success: false,
       error: "Something went wrong",
+    };
+  }
+}
+
+interface SearchUsersParams {
+  limit?: number;
+  page?: number;
+}
+
+export async function searchUsers(params: SearchUsersParams) {
+  const { limit = 10, page = 1 } = params;
+
+  const skip = (page - 1) * limit;
+
+  const total = await prisma.user.count();
+
+  const users = await prisma.user.findMany({
+    skip,
+    take: limit,
+    orderBy: {
+      name: "asc",
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      image: true,
+      emailVerified: true,
+      role: true,
+      _count: {
+        select: {
+          bookings: true,
+        },
+      },
+    },
+  });
+
+  return {
+    users,
+    pagination: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+}
+
+export async function makeUserAdmin(userId: string): Promise<AuthActionReturn> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return {
+        success: false,
+        error: "You must be logged in",
+      };
+    }
+
+    // Check if current user is admin
+    if (session.user.role !== "Admin") {
+      return {
+        success: false,
+        error: "Only admins can perform this action",
+      };
+    }
+
+    // Check if user exists
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      return {
+        success: false,
+        error: "User not found",
+      };
+    }
+
+    // Check if already admin
+    if (user.role === "Admin") {
+      return {
+        success: false,
+        error: "User is already an admin",
+      };
+    }
+
+    // Update user role to Admin
+    await prisma.user.update({
+      where: { id: userId },
+      data: { role: "Admin" },
+    });
+
+    return {
+      success: true,
+      message: `${user.name} is now an admin`,
+    };
+  } catch (error) {
+    console.error("Error making user admin:", error);
+    return {
+      success: false,
+      error: "Failed to make user admin",
+    };
+  }
+}
+
+export async function removeUserAdmin(userId: string): Promise<AuthActionReturn> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return {
+        success: false,
+        error: "You must be logged in",
+      };
+    }
+
+    // Check if current user is admin
+    if (session.user.role !== "Admin") {
+      return {
+        success: false,
+        error: "Only admins can perform this action",
+      };
+    }
+
+    // Check if trying to remove self from admin
+    if (userId === session.user.id) {
+      return {
+        success: false,
+        error: "You cannot remove your own admin privileges",
+      };
+    }
+
+    // Check if user exists
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      return {
+        success: false,
+        error: "User not found",
+      };
+    }
+
+    // Check if already a regular user
+    if (user.role !== "Admin") {
+      return {
+        success: false,
+        error: "User is not an admin",
+      };
+    }
+
+    // Update user role to User
+    await prisma.user.update({
+      where: { id: userId },
+      data: { role: "User" },
+    });
+
+    return {
+      success: true,
+      message: `${user.name} is no longer an admin`,
+    };
+  } catch (error) {
+    console.error("Error removing user admin:", error);
+    return {
+      success: false,
+      error: "Failed to remove admin privileges",
+    };
+  }
+}
+
+export async function deleteUser(userId: string): Promise<AuthActionReturn> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return {
+        success: false,
+        error: "You must be logged in",
+      };
+    }
+
+    // Check if current user is admin
+    if (session.user.role !== "Admin") {
+      return {
+        success: false,
+        error: "Only admins can perform this action",
+      };
+    }
+
+    // Check if trying to delete self
+    if (userId === session.user.id) {
+      return {
+        success: false,
+        error: "You cannot delete your own account",
+      };
+    }
+
+    // Check if user exists
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      return {
+        success: false,
+        error: "User not found",
+      };
+    }
+
+    // Delete user (cascading delete will handle bookings, sessions, etc.)
+    await prisma.user.delete({
+      where: { id: userId },
+    });
+
+    return {
+      success: true,
+      message: `User ${user.name} has been deleted`,
+    };
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    return {
+      success: false,
+      error: "Failed to delete user",
     };
   }
 }

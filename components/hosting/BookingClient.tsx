@@ -25,6 +25,7 @@ import {
   markBookingAsCompleted,
   adminCancelBooking,
 } from "@/lib/actions/booking";
+import Confirmation from "@/components/confirmation/Confirmation";
 
 interface Booking {
   id: string;
@@ -115,6 +116,9 @@ const statusMap: Record<
 
 const BookingClient = ({ booking }: BookingClientProps) => {
   const [isLoading, setIsLoading] = useState<string | null>(null);
+  const [activeAction, setActiveAction] = useState<
+    "confirm" | "active" | "complete" | "cancel" | null
+  >(null);
   const router = useRouter();
 
   const listingImage = booking.listing.image as { url?: string } | null;
@@ -130,10 +134,12 @@ const BookingClient = ({ booking }: BookingClientProps) => {
         router.refresh();
       } else {
         toast.error(result.error);
+        throw new Error(result.error || "Failed to confirm booking");
       }
     } catch (error) {
       console.error("Error:", error);
       toast.error("An error occurred while confirming the booking");
+      throw error;
     } finally {
       setIsLoading(null);
     }
@@ -148,10 +154,12 @@ const BookingClient = ({ booking }: BookingClientProps) => {
         router.refresh();
       } else {
         toast.error(result.error);
+        throw new Error(result.error || "Failed to mark booking as active");
       }
     } catch (error) {
       console.error("Error:", error);
       toast.error("An error occurred while marking the booking as active");
+      throw error;
     } finally {
       setIsLoading(null);
     }
@@ -166,23 +174,18 @@ const BookingClient = ({ booking }: BookingClientProps) => {
         router.refresh();
       } else {
         toast.error(result.error);
+        throw new Error(result.error || "Failed to mark booking as completed");
       }
     } catch (error) {
       console.error("Error:", error);
       toast.error("An error occurred while marking the booking as completed");
+      throw error;
     } finally {
       setIsLoading(null);
     }
   };
 
   const handleCancelBooking = async () => {
-    // const confirmed = window.confirm(
-    //   booking.isPaid
-    //     ? "Are you sure you want to cancel this booking? A full refund will be processed to the customer's original Khalti payment method."
-    //     : "Are you sure you want to cancel this booking?"
-    // );
-    // if (!confirmed) return;
-
     setIsLoading("cancel");
     try {
       const result = await adminCancelBooking(booking.id, "Cancelled by admin");
@@ -191,14 +194,67 @@ const BookingClient = ({ booking }: BookingClientProps) => {
         router.refresh();
       } else {
         toast.error(result.error);
+        throw new Error(result.error || "Failed to cancel booking");
       }
     } catch (error) {
       console.error("Error:", error);
       toast.error("An error occurred while cancelling the booking");
+      throw error;
     } finally {
       setIsLoading(null);
     }
   };
+
+  const getConfirmationConfig = () => {
+    if (activeAction === "confirm") {
+      return {
+        title: "Confirm Booking?",
+        description:
+          "This will confirm the booking and move it to confirmed status.",
+        actionButtonName: "Confirm Booking",
+        actionFunction: handleConfirmBooking,
+        isDangerous: false,
+      };
+    }
+
+    if (activeAction === "active") {
+      return {
+        title: "Mark Booking as Active?",
+        description:
+          "Use this when the customer has picked up the vehicle and the rental has started.",
+        actionButtonName: "Mark as Active",
+        actionFunction: handleMarkActive,
+        isDangerous: false,
+      };
+    }
+
+    if (activeAction === "complete") {
+      return {
+        title: "Mark Booking as Completed?",
+        description:
+          "Use this when the rental is finished and the vehicle is returned.",
+        actionButtonName: "Mark as Completed",
+        actionFunction: handleMarkCompleted,
+        isDangerous: false,
+      };
+    }
+
+    if (activeAction === "cancel") {
+      return {
+        title: "Cancel Booking?",
+        description: booking.isPaid
+          ? "Are you sure you want to cancel this booking? A full refund will be processed to the customer's original Khalti payment method."
+          : "Are you sure you want to cancel this booking?",
+        actionButtonName: "Cancel Booking",
+        actionFunction: handleCancelBooking,
+        isDangerous: true,
+      };
+    }
+
+    return null;
+  };
+
+  const confirmationConfig = getConfirmationConfig();
 
   return (
     <div className="max-w-6xl space-y-6">
@@ -410,7 +466,7 @@ const BookingClient = ({ booking }: BookingClientProps) => {
               {booking.status === "Pending" && (
                 <Button 
                   className="w-full" 
-                  onClick={handleConfirmBooking}
+                  onClick={() => setActiveAction("confirm")}
                   disabled={isLoading === "confirm"}
                 >
                   {isLoading === "confirm" ? "Confirming..." : "Confirm Booking"}
@@ -419,7 +475,7 @@ const BookingClient = ({ booking }: BookingClientProps) => {
               {booking.status === "Confirmed" && (
                 <Button 
                   className="w-full" 
-                  onClick={handleMarkActive}
+                  onClick={() => setActiveAction("active")}
                   disabled={isLoading === "active"}
                 >
                   {isLoading === "active" ? "Updating..." : "Mark as Active"}
@@ -429,7 +485,7 @@ const BookingClient = ({ booking }: BookingClientProps) => {
                 <Button 
                   className="w-full" 
                   variant="secondary"
-                  onClick={handleMarkCompleted}
+                  onClick={() => setActiveAction("complete")}
                   disabled={isLoading === "complete"}
                 >
                   {isLoading === "complete" ? "Updating..." : "Mark as Completed"}
@@ -439,7 +495,7 @@ const BookingClient = ({ booking }: BookingClientProps) => {
                 <Button
                   className="w-full"
                   variant="destructive"
-                  onClick={handleCancelBooking}
+                  onClick={() => setActiveAction("cancel")}
                   disabled={isLoading === "cancel"}
                 >
                   {isLoading === "cancel" ? "Cancelling..." : "Cancel Booking"}
@@ -449,6 +505,18 @@ const BookingClient = ({ booking }: BookingClientProps) => {
           </section>
         </div>
       </div>
+
+      {confirmationConfig && (
+        <Confirmation
+          isOpen={activeAction !== null}
+          onClose={() => setActiveAction(null)}
+          title={confirmationConfig.title}
+          description={confirmationConfig.description}
+          actionButtonName={confirmationConfig.actionButtonName}
+          actionFunction={confirmationConfig.actionFunction}
+          isDangerous={confirmationConfig.isDangerous}
+        />
+      )}
     </div>
   );
 };
