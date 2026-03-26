@@ -542,6 +542,369 @@ interface SearchBookingsParams {
   page?: number;
 }
 
+export interface RevenueTrendDataPoint {
+  date: string;
+  revenue: number;
+}
+
+export interface RevenueByVehicleDataPoint {
+  vehicle: string;
+  revenue: number;
+}
+
+export interface BookingTrendDataPoint {
+  date: string;
+  bookings: number;
+}
+
+export interface BookingStatusDistributionDataPoint {
+  status: "Pending" | "Confirmed" | "Active" | "Completed" | "Cancelled";
+  count: number;
+}
+
+export interface TopVehiclesByBookingsDataPoint {
+  vehicle: string;
+  bookings: number;
+}
+
+export interface DashboardStatsData {
+  totalVehicles: number;
+  totalBookings: number;
+  totalUsers: number;
+  totalRevenue: number;
+}
+
+function getDateKey(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+export async function getDashboardStatsData(): Promise<DashboardStatsData> {
+  const [totalVehicles, totalBookings, totalUsers, revenueAggregate] =
+    await Promise.all([
+      prisma.listing.count(),
+      prisma.booking.count(),
+      prisma.user.count(),
+      prisma.booking.aggregate({
+        where: {
+          isPaid: true,
+          status: {
+            not: "Cancelled",
+          },
+        },
+        _sum: {
+          totalPrice: true,
+        },
+      }),
+    ]);
+
+  return {
+    totalVehicles,
+    totalBookings,
+    totalUsers,
+    totalRevenue: revenueAggregate._sum.totalPrice ?? 0,
+  };
+}
+
+export async function getRevenueTrendData(days = 90): Promise<RevenueTrendDataPoint[]> {
+  const safeDays = Math.max(1, days);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const startDate = new Date(today);
+  startDate.setDate(today.getDate() - (safeDays - 1));
+
+  const endDate = new Date(today);
+  endDate.setHours(23, 59, 59, 999);
+
+  const bookings = await prisma.booking.findMany({
+    where: {
+      isPaid: true,
+      status: {
+        not: "Cancelled",
+      },
+      paidAt: {
+        gte: startDate,
+        lte: endDate,
+      },
+    },
+    select: {
+      paidAt: true,
+      totalPrice: true,
+    },
+  });
+
+  const revenueByDate = new Map<string, number>();
+
+  for (let index = 0; index < safeDays; index++) {
+    const date = new Date(startDate);
+    date.setDate(startDate.getDate() + index);
+    revenueByDate.set(getDateKey(date), 0);
+  }
+
+  for (const booking of bookings) {
+    if (!booking.paidAt) {
+      continue;
+    }
+
+    const dateKey = getDateKey(booking.paidAt);
+    const currentRevenue = revenueByDate.get(dateKey) ?? 0;
+    revenueByDate.set(dateKey, currentRevenue + booking.totalPrice);
+  }
+
+  return Array.from(revenueByDate.entries()).map(([dateKey, revenue]) => {
+    const [year, month, day] = dateKey.split("-").map(Number);
+    const date = new Date(year, month - 1, day);
+
+    return {
+      date: date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      }),
+      revenue,
+    };
+  });
+}
+
+export async function getRevenueByVehicleData(
+  limit = 6,
+  days?: number,
+): Promise<RevenueByVehicleDataPoint[]> {
+  const safeLimit = Math.max(1, limit);
+
+  const whereClause: {
+    isPaid: boolean;
+    status: {
+      not: "Cancelled";
+    };
+    paidAt?: {
+      gte: Date;
+      lte: Date;
+    };
+  } = {
+    isPaid: true,
+    status: {
+      not: "Cancelled",
+    },
+  };
+
+  if (typeof days === "number") {
+    const safeDays = Math.max(1, days);
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const startDate = new Date(today);
+    startDate.setDate(today.getDate() - (safeDays - 1));
+
+    const endDate = new Date(today);
+    endDate.setHours(23, 59, 59, 999);
+
+    whereClause.paidAt = {
+      gte: startDate,
+      lte: endDate,
+    };
+  }
+
+  const revenueByListing = await prisma.booking.groupBy({
+    by: ["listingId"],
+    where: whereClause,
+    _sum: {
+      totalPrice: true,
+    },
+    orderBy: {
+      _sum: {
+        totalPrice: "desc",
+      },
+    },
+    take: safeLimit,
+  });
+
+  if (!revenueByListing.length) {
+    return [];
+  }
+
+  const listingIds = revenueByListing.map((entry) => entry.listingId);
+  const listings = await prisma.listing.findMany({
+    where: {
+      id: {
+        in: listingIds,
+      },
+    },
+    select: {
+      id: true,
+      name: true,
+    },
+  });
+
+  const listingNameById = new Map(listings.map((listing) => [listing.id, listing.name]));
+
+  return revenueByListing.map((entry) => ({
+    vehicle: listingNameById.get(entry.listingId) || "Unknown Vehicle",
+    revenue: entry._sum.totalPrice || 0,
+  }));
+}
+
+export async function getBookingTrendData(days = 30): Promise<BookingTrendDataPoint[]> {
+  const safeDays = Math.max(1, days);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const startDate = new Date(today);
+  startDate.setDate(today.getDate() - (safeDays - 1));
+
+  const endDate = new Date(today);
+  endDate.setHours(23, 59, 59, 999);
+
+  const bookings = await prisma.booking.findMany({
+    where: {
+      bookedAt: {
+        gte: startDate,
+        lte: endDate,
+      },
+    },
+    select: {
+      bookedAt: true,
+    },
+  });
+
+  const bookingsByDate = new Map<string, number>();
+
+  for (let index = 0; index < safeDays; index++) {
+    const date = new Date(startDate);
+    date.setDate(startDate.getDate() + index);
+    bookingsByDate.set(getDateKey(date), 0);
+  }
+
+  for (const booking of bookings) {
+    const dateKey = getDateKey(booking.bookedAt);
+    const currentCount = bookingsByDate.get(dateKey) ?? 0;
+    bookingsByDate.set(dateKey, currentCount + 1);
+  }
+
+  return Array.from(bookingsByDate.entries()).map(([dateKey, bookingsCount]) => {
+    const [year, month, day] = dateKey.split("-").map(Number);
+    const date = new Date(year, month - 1, day);
+
+    return {
+      date: date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      }),
+      bookings: bookingsCount,
+    };
+  });
+}
+
+export async function getBookingStatusDistributionData(
+  days = 30,
+): Promise<BookingStatusDistributionDataPoint[]> {
+  const safeDays = Math.max(1, days);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const startDate = new Date(today);
+  startDate.setDate(today.getDate() - (safeDays - 1));
+
+  const endDate = new Date(today);
+  endDate.setHours(23, 59, 59, 999);
+
+  const groupedStatuses = await prisma.booking.groupBy({
+    by: ["status"],
+    where: {
+      bookedAt: {
+        gte: startDate,
+        lte: endDate,
+      },
+    },
+    _count: {
+      _all: true,
+    },
+  });
+
+  const statusOrder: BookingStatusDistributionDataPoint["status"][] = [
+    "Pending",
+    "Confirmed",
+    "Active",
+    "Completed",
+    "Cancelled",
+  ];
+
+  const statusCountMap = new Map(
+    groupedStatuses.map((entry) => [entry.status, entry._count._all]),
+  );
+
+  return statusOrder.map((status) => ({
+    status,
+    count: statusCountMap.get(status) ?? 0,
+  }));
+}
+
+export async function getTopVehiclesByBookingsData(
+  days = 30,
+  limit = 6,
+): Promise<TopVehiclesByBookingsDataPoint[]> {
+  const safeDays = Math.max(1, days);
+  const safeLimit = Math.max(1, limit);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const startDate = new Date(today);
+  startDate.setDate(today.getDate() - (safeDays - 1));
+
+  const endDate = new Date(today);
+  endDate.setHours(23, 59, 59, 999);
+
+  const bookingsByListing = await prisma.booking.groupBy({
+    by: ["listingId"],
+    where: {
+      bookedAt: {
+        gte: startDate,
+        lte: endDate,
+      },
+    },
+    _count: {
+      listingId: true,
+    },
+    orderBy: {
+      _count: {
+        listingId: "desc",
+      },
+    },
+    take: safeLimit,
+  });
+
+  if (!bookingsByListing.length) {
+    return [];
+  }
+
+  const listingIds = bookingsByListing.map((entry) => entry.listingId);
+  const listings = await prisma.listing.findMany({
+    where: {
+      id: {
+        in: listingIds,
+      },
+    },
+    select: {
+      id: true,
+      name: true,
+    },
+  });
+
+  const listingNameById = new Map(listings.map((listing) => [listing.id, listing.name]));
+
+  return bookingsByListing.map((entry) => ({
+    vehicle: listingNameById.get(entry.listingId) || "Unknown Vehicle",
+    bookings: entry._count.listingId,
+  }));
+}
+
 export async function searchBookings(params: SearchBookingsParams) {
   const { limit = 10, page = 1 } = params;
 

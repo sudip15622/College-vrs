@@ -2,13 +2,13 @@
 
 import React, { useMemo, useState } from "react";
 import {
-  AreaChart,
   Area,
+  AreaChart,
+  Legend,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { RevenueTrendDataPoint } from "@/lib/actions/booking";
+import { BookingTrendDataPoint } from "@/lib/actions/booking";
 
 type RangeOption = "30d" | "7d" | "3m";
 
@@ -28,33 +28,32 @@ const rangeConfig: Record<RangeOption, { label: string; days: number }> = {
   "3m": { label: "Last 3 months", days: 90 },
 };
 
-interface RevenueTrendProps {
-  initialData: RevenueTrendDataPoint[];
+interface BookingsTrendProps {
+  initialData: BookingTrendDataPoint[];
 }
 
-const RevenueTrend = ({ initialData }: RevenueTrendProps) => {
+const BookingsTrend = ({ initialData }: BookingsTrendProps) => {
   const [selectedRange, setSelectedRange] = useState<RangeOption>("30d");
   const chartConfig = rangeConfig[selectedRange];
   const data = useMemo(
     () => initialData.slice(-chartConfig.days),
     [chartConfig.days, initialData],
   );
-  const xAxisInterval = selectedRange === "3m" ? 9 : selectedRange === "30d" ? 4 : 0;
+  const xAxisInterval =
+    selectedRange === "3m" ? 9 : selectedRange === "30d" ? 4 : 0;
 
-  // Stats
-  const totalRevenue = data.reduce((sum, item) => sum + item.revenue, 0);
-  const averageRevenue = data.length ? Math.round(totalRevenue / data.length) : 0;
-  const maxRevenue = data.length
-    ? data.reduce((max, item) => Math.max(max, item.revenue), 0)
-    : 0;
+  const totalBookings = data.reduce((sum, item) => sum + item.bookings, 0);
+  const peakBookings = data.reduce(
+    (max, item) => (item.bookings > max ? item.bookings : max),
+    0,
+  );
 
   return (
     <Card className="w-full">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Revenue Trend</CardTitle>
-            {/* <p className="text-xs text-muted-foreground mt-1">{chartConfig.label}</p> */}
+            <CardTitle>Bookings Trend</CardTitle>
             <div className="flex mt-2">
               <Select
                 value={selectedRange}
@@ -74,22 +73,18 @@ const RevenueTrend = ({ initialData }: RevenueTrendProps) => {
             </div>
           </div>
           <div className="text-right">
-            <p className="text-2xl font-bold">
-              Rs. {totalRevenue.toLocaleString()}
-            </p>
-            <p className="text-xs text-muted-foreground">Total revenue</p>
+            <p className="text-2xl font-bold">{totalBookings}</p>
+            <p className="text-xs text-muted-foreground">Total bookings</p>
           </div>
         </div>
       </CardHeader>
 
       <CardContent>
         <div className="space-y-4">
-          {/* Chart */}
           <ResponsiveContainer width="100%" height={300}>
             <AreaChart data={data}>
-              {/* Gradient */}
               <defs>
-                <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                <linearGradient id="colorBookings" x1="0" y1="0" x2="0" y2="1">
                   <stop
                     offset="5%"
                     stopColor="hsl(var(--primary))"
@@ -103,33 +98,26 @@ const RevenueTrend = ({ initialData }: RevenueTrendProps) => {
                 </linearGradient>
               </defs>
 
-              {/* Tooltip */}
               <XAxis
                 dataKey="date"
                 interval={xAxisInterval}
                 axisLine={{
                   stroke: "var(--primary)",
-                  strokeWidth: .5,
+                  strokeWidth: 0.5,
                 }}
                 tickLine={false}
-                tick={{
-                  fill: "hsl(var(--muted-foreground))",
-                  fontSize: 12,
-                }}
+                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
               />
-
               <YAxis
+                allowDecimals={false}
                 axisLine={{
                   stroke: "var(--primary)",
-                  strokeWidth: .5,
+                  strokeWidth: 0.5,
                 }}
                 tickLine={false}
-                tick={{
-                  fill: "hsl(var(--muted-foreground))",
-                  fontSize: 12,
-                }}
+                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
                 label={{
-                  value: "Revenue (Rs.)",
+                  value: "Bookings",
                   angle: -90,
                   position: "insideLeft",
                   style: {
@@ -138,7 +126,6 @@ const RevenueTrend = ({ initialData }: RevenueTrendProps) => {
                   },
                 }}
               />
-
               <Tooltip
                 contentStyle={{
                   backgroundColor: "var(--card)",
@@ -148,18 +135,14 @@ const RevenueTrend = ({ initialData }: RevenueTrendProps) => {
                   boxShadow: "0 8px 20px rgba(0,0,0,0.3)",
                   opacity: 1,
                 }}
-                itemStyle={{
-                  color: "hsl(var(--foreground))",
-                }}
+                itemStyle={{ color: "hsl(var(--foreground))" }}
                 labelStyle={{
                   color: "hsl(var(--foreground))",
                   fontWeight: 600,
                 }}
                 formatter={(value) => {
-                  const normalizedValue = Array.isArray(value)
-                    ? value[0]
-                    : value ?? 0;
-                  return `Rs. ${Number(normalizedValue).toLocaleString()}`;
+                  const normalizedValue = Array.isArray(value) ? value[0] : value ?? 0;
+                  return `${Number(normalizedValue).toLocaleString()} bookings`;
                 }}
                 cursor={{
                   stroke: "hsl(var(--primary))",
@@ -167,43 +150,32 @@ const RevenueTrend = ({ initialData }: RevenueTrendProps) => {
                   strokeDasharray: "4 4",
                 }}
               />
-
               <Legend />
 
-              {/* Area */}
               <Area
                 type="monotone"
-                dataKey="revenue"
+                dataKey="bookings"
                 stroke="hsl(var(--primary))"
                 strokeWidth={3}
-                fill="url(#colorRevenue)"
-                dot={{
-                  fill: "hsl(var(--primary))",
-                  r: 4,
-                }}
-                activeDot={{
-                  r: 7,
-                  strokeWidth: 2,
-                }}
-                name="Daily Revenue"
+                fill="url(#colorBookings)"
+                dot={{ fill: "hsl(var(--primary))", r: 4 }}
+                activeDot={{ r: 7, strokeWidth: 2 }}
+                name="Daily bookings"
                 isAnimationActive={true}
               />
             </AreaChart>
           </ResponsiveContainer>
 
-          {/* Stats Footer */}
           <div className="grid grid-cols-2 gap-4 pt-4 border-t">
             <div>
               <p className="text-xs text-muted-foreground">Average Daily</p>
               <p className="text-lg font-semibold">
-                Rs. {averageRevenue.toLocaleString()}
+                {data.length ? Math.round(totalBookings / data.length) : 0}
               </p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Peak Revenue</p>
-              <p className="text-lg font-semibold">
-                Rs. {maxRevenue.toLocaleString()}
-              </p>
+              <p className="text-xs text-muted-foreground">Peak Demand</p>
+              <p className="text-lg font-semibold">{peakBookings}</p>
             </div>
           </div>
         </div>
@@ -212,4 +184,4 @@ const RevenueTrend = ({ initialData }: RevenueTrendProps) => {
   );
 };
 
-export default RevenueTrend;
+export default BookingsTrend;
