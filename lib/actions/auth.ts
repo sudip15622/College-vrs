@@ -8,6 +8,12 @@ import { SignupSchema, SignupType } from "../schemas/signup";
 import { AuthError } from "next-auth";
 import { revalidatePath } from "next/cache";
 import { ProfileEditInput, ProfileEditSchema } from "../schemas/profile";
+import {
+  ChangePasswordInput,
+  ChangePasswordSchema,
+  DeleteAccountInput,
+  DeleteAccountSchema,
+} from "../schemas/account-settings";
 
 interface AuthActionReturn {
   success: boolean;
@@ -118,6 +124,181 @@ export async function updateProfileAction(
     return {
       success: false,
       error: "Failed to update profile. Please try again",
+    };
+  }
+}
+
+export async function changePasswordAction(
+  formData: ChangePasswordInput
+): Promise<AuthActionReturn> {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return {
+      success: false,
+      error: "You must be logged in to change your password",
+    };
+  }
+
+  const parsed = ChangePasswordSchema.safeParse(formData);
+
+  if (!parsed.success) {
+    const firstError = parsed.error.issues[0];
+    return {
+      success: false,
+      error: firstError?.message || "Invalid password input",
+    };
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: session.user.id,
+      },
+      select: {
+        id: true,
+        salt: true,
+        password: true,
+      },
+    });
+
+    if (!user) {
+      return {
+        success: false,
+        error: "User account not found",
+      };
+    }
+
+    const currentHash = customHash(parsed.data.currentPassword, user.salt);
+
+    if (currentHash !== user.password) {
+      return {
+        success: false,
+        error: "Current password is incorrect",
+      };
+    }
+
+    const nextSalt = generateSalt();
+    const nextHash = customHash(parsed.data.newPassword, nextSalt);
+
+    await prisma.user.update({
+      where: {
+        id: user.id,
+      },
+      data: {
+        password: nextHash,
+        salt: nextSalt,
+      },
+    });
+
+    revalidatePath("/account-settings");
+
+    return {
+      success: true,
+      message: "Password changed successfully",
+    };
+  } catch (error) {
+    console.error("Error changing password:", error);
+
+    return {
+      success: false,
+      error: "Failed to change password. Please try again",
+    };
+  }
+}
+
+export async function deleteOwnAccountAction(
+  formData: DeleteAccountInput
+): Promise<AuthActionReturn> {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return {
+      success: false,
+      error: "You must be logged in to delete your account",
+    };
+  }
+
+  const parsed = DeleteAccountSchema.safeParse(formData);
+
+  if (!parsed.success) {
+    const firstError = parsed.error.issues[0];
+    return {
+      success: false,
+      error: firstError?.message || "Invalid account deletion request",
+    };
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: session.user.id,
+      },
+      select: {
+        id: true,
+        name: true,
+        salt: true,
+        password: true,
+      },
+    });
+
+    if (!user) {
+      return {
+        success: false,
+        error: "User account not found",
+      };
+    }
+
+    const passwordHash = customHash(parsed.data.password, user.salt);
+
+    if (passwordHash !== user.password) {
+      return {
+        success: false,
+        error: "Password is incorrect",
+      };
+    }
+
+    const blockingBookingsCount = await prisma.booking.count({
+      where: {
+        userId: user.id,
+        status: {
+          in: ["Pending", "Confirmed", "Active"],
+        },
+      },
+    });
+
+    if (blockingBookingsCount > 0) {
+      return {
+        success: false,
+        error:
+          "You cannot delete your account while you have pending, confirmed, or active bookings",
+      };
+    }
+
+    await prisma.user.delete({
+      where: {
+        id: user.id,
+      },
+    });
+
+    try {
+      await signOut({ redirect: false });
+    } catch (signOutError) {
+      console.error("Error signing out after account deletion:", signOutError);
+    }
+
+    revalidatePath("/");
+
+    return {
+      success: true,
+      message: "Your account has been deleted",
+    };
+  } catch (error) {
+    console.error("Error deleting account:", error);
+
+    return {
+      success: false,
+      error: "Failed to delete account. Please try again",
     };
   }
 }
