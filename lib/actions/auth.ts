@@ -1,16 +1,125 @@
 "use server";
 
-import { signIn, signOut, auth } from "@/auth";
+import { signIn, signOut, auth, unstable_update } from "@/auth";
 import { customHash, generateSalt } from "../hash";
 import prisma from "@/prisma";
 import { LoginSchema, LoginType } from "../schemas/login";
 import { SignupSchema, SignupType } from "../schemas/signup";
 import { AuthError } from "next-auth";
+import { revalidatePath } from "next/cache";
+import { ProfileEditInput, ProfileEditSchema } from "../schemas/profile";
 
 interface AuthActionReturn {
   success: boolean;
   error?: string;
   message?: string;
+}
+
+interface UpdateProfileActionReturn extends AuthActionReturn {
+  profile?: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    image: string | null;
+  };
+}
+
+const DEFAULT_PROFILE_IMAGE = "/default_user.png";
+
+export async function updateProfileAction(
+  formData: ProfileEditInput
+): Promise<UpdateProfileActionReturn> {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return {
+      success: false,
+      error: "You must be logged in to update your profile",
+    };
+  }
+
+  const parsed = ProfileEditSchema.safeParse(formData);
+
+  if (!parsed.success) {
+    const firstError = parsed.error.issues[0];
+    return {
+      success: false,
+      error: firstError?.message || "Invalid profile input",
+    };
+  }
+
+  try {
+    const existing = await prisma.user.findFirst({
+      where: {
+        email: parsed.data.email,
+        NOT: {
+          id: session.user.id,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (existing) {
+      return {
+        success: false,
+        error: "Email is already in use by another account",
+      };
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: {
+        id: session.user.id,
+      },
+      data: {
+        name: parsed.data.name,
+        email: parsed.data.email,
+        image:
+          parsed.data.image === "" || parsed.data.image === DEFAULT_PROFILE_IMAGE
+            ? null
+            : parsed.data.image,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        image: true,
+      },
+    });
+
+    await unstable_update({
+      user: {
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        image: updatedUser.image,
+      },
+    });
+
+    revalidatePath("/profile");
+
+    return {
+      success: true,
+      message: "Profile updated successfully",
+      profile: {
+        id: updatedUser.id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        image: updatedUser.image,
+      },
+    };
+  } catch (error) {
+    console.error("Error updating profile:", error);
+
+    return {
+      success: false,
+      error: "Failed to update profile. Please try again",
+    };
+  }
 }
 
 export async function signupAction(

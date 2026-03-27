@@ -132,7 +132,7 @@ const RevenueByVehicle = ({ dataByRange }: RevenueByVehicleProps) => {
                 border: "1px solid var(--border)",
                 borderRadius: "10px",
               }}
-              formatter={(value) => `₹${Number(value).toLocaleString()}`}
+              formatter={(value) => `Rs. ${Number(value).toLocaleString()}`}
               cursor={false}
             />
             <Bar

@@ -4,7 +4,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import prisma from "./prisma";
 import { customHash } from "./lib/hash";
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
   adapter: PrismaAdapter(prisma) as any,
   session: {
     strategy: "jwt",
@@ -44,6 +44,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           name: user.name,
           email: user.email,
           role: user.role,
+          image: user.image,
         };
       },
     }),
@@ -55,12 +56,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.name = user.name;
         token.email = user.email;
         token.role = user.role;
+        token.image = user.image ?? null;
       }
 
       if (trigger === "update" && session) {
-        token.name = session.name;
-        token.email = session.email;
-        token.role = session.role;
+        token.name = session.user?.name ?? token.name;
+        token.email = session.user?.email ?? token.email;
+        token.role = session.user?.role ?? token.role;
+        token.image = session.user?.image ?? token.image ?? null;
       }
 
       return token;
@@ -71,6 +74,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.name = token.name as string;
         session.user.email = token.email as string;
         session.user.role = token.role as string;
+        session.user.image = (token.image as string | null) ?? null;
       }
       return session;
     },

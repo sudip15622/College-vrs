@@ -56,7 +56,7 @@ const HostingDashboard = async () => {
     },
     {
       title: "Total Revenue",
-      value: `₹${dashboardStats.totalRevenue.toLocaleString()}`,
+      value: `Rs. ${dashboardStats.totalRevenue.toLocaleString()}`,
       icon: TrendingUp,
       description: "From paid bookings",
     },

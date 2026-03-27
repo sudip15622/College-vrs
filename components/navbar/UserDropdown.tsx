@@ -49,7 +49,7 @@ const UserDropdown = ({ user }: UserDropdownProps) => {
         <div className="w-10 h-10 min-w-10 max-w-10 relative overflow-hidden rounded-full bg-border cursor-pointer">
           <Image
             className="object-cover w-full h-full"
-            src={"/default_user.png"}
+            src={user.image || "/default_user.png"}
             alt={user.name}
             fill
             sizes="40px"
@@ -62,7 +62,7 @@ const UserDropdown = ({ user }: UserDropdownProps) => {
           <div className="w-10 h-10 relative overflow-hidden rounded-full bg-border">
             <Image
               className="object-cover w-full h-full"
-              src={"/default_user.png"}
+              src={user.image || "/default_user.png"}
               alt={user.name}
               fill
               sizes="40px"
