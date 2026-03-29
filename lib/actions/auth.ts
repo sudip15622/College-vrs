@@ -7,6 +7,8 @@ import { LoginSchema, LoginType } from "../schemas/login";
 import { SignupSchema, SignupType } from "../schemas/signup";
 import { AuthError } from "next-auth";
 import { revalidatePath } from "next/cache";
+import { randomBytes } from "crypto";
+import { Resend } from "resend";
 import { ProfileEditInput, ProfileEditSchema } from "../schemas/profile";
 import {
   ChangePasswordInput,
@@ -14,11 +16,28 @@ import {
   DeleteAccountInput,
   DeleteAccountSchema,
 } from "../schemas/account-settings";
+import {
+  ForgotPasswordEmailType,
+  ForgotPasswordEmailSchema,
+  ForgotPasswordVerifyOtpType,
+  ForgotPasswordVerifyOtpSchema,
+  ForgotPasswordResetWithTokenType,
+  ForgotPasswordResetWithTokenSchema,
+} from "../schemas/forgot-password";
+import { VerifyEmailOtpSchema, VerifyEmailOtpType } from "../schemas/verify-email";
 
 interface AuthActionReturn {
   success: boolean;
   error?: string;
   message?: string;
+}
+
+interface ForgotPasswordVerifyOtpActionReturn extends AuthActionReturn {
+  resetToken?: string;
+}
+
+interface ForgotPasswordResetActionReturn extends AuthActionReturn {
+  loggedIn?: boolean;
 }
 
 interface UpdateProfileActionReturn extends AuthActionReturn {
@@ -28,10 +47,634 @@ interface UpdateProfileActionReturn extends AuthActionReturn {
     email: string;
     role: string;
     image: string | null;
+    emailVerified: boolean;
   };
 }
 
 const DEFAULT_PROFILE_IMAGE = "/default_user.png";
+const OTP_EXPIRY_MINUTES = 10;
+const RESET_SESSION_EXPIRY_MINUTES = 15;
+const OTP_MAX_ATTEMPTS = 5;
+const OTP_RESEND_COOLDOWN_SECONDS = 60;
+const OTP_GENERATION_SALT = "forgot_password_otp_generation_v1";
+const OTP_VERIFICATION_SALT = "forgot_password_otp_verification_v1";
+const RESET_TOKEN_HASH_SALT = "forgot_password_reset_token_hash_v1";
+
+function getResetTokenHash(token: string) {
+  return customHash(token, RESET_TOKEN_HASH_SALT);
+}
+
+function generateNumericOtp(email: string) {
+  const entropySeed = `${email}|${Date.now()}|${generateSalt(12)}`;
+  const digest = customHash(entropySeed, OTP_GENERATION_SALT);
+
+  let numericStream = "";
+  for (let i = 0; i < digest.length; i++) {
+    const transformedDigit = (digest.charCodeAt(i) + i * 7) % 10;
+    numericStream += transformedDigit.toString();
+  }
+
+  if (numericStream.length < 6) {
+    numericStream = numericStream.padEnd(6, "0");
+  }
+
+  const maxStart = Math.max(0, numericStream.length - 6);
+  const startIndex = (digest.charCodeAt(0) + digest.length) % (maxStart + 1);
+
+  return numericStream.slice(startIndex, startIndex + 6);
+}
+
+function getOtpVerificationHash(email: string, otp: string) {
+  const normalizedPayload = `${email.toLowerCase().trim()}|${otp}`;
+  return customHash(normalizedPayload, OTP_VERIFICATION_SALT);
+}
+
+async function sendForgotPasswordOtpEmail(email: string, otp: string) {
+  const resendApiKey = process.env.RESEND_API_KEY;
+
+  if (!resendApiKey) {
+    throw new Error("RESEND_API_KEY is not configured");
+  }
+
+  const resend = new Resend(resendApiKey);
+  // const fromEmail = process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
+
+  await resend.emails.send({
+    from: 'VRS <contact@sudip-lamichhane.com.np>',
+    to: email,
+    subject: "Your password reset OTP",
+    html: `
+      <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #111;">
+        <h2 style="margin: 0 0 12px;">Password reset request</h2>
+        <p style="margin: 0 0 12px;">Use this OTP to reset your password:</p>
+        <div style="font-size: 28px; font-weight: 700; letter-spacing: 6px; margin: 8px 0 14px;">${otp}</div>
+        <p style="margin: 0 0 8px;">This code expires in ${OTP_EXPIRY_MINUTES} minutes.</p>
+        <p style="margin: 0; color: #666;">If you did not request this, you can ignore this email.</p>
+      </div>
+    `,
+  });
+}
+
+async function sendVerifyEmailOtpEmail(email: string, otp: string) {
+  const resendApiKey = process.env.RESEND_API_KEY;
+
+  if (!resendApiKey) {
+    throw new Error("RESEND_API_KEY is not configured");
+  }
+
+  const resend = new Resend(resendApiKey);
+  // const fromEmail = process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
+
+  await resend.emails.send({
+    from: 'VRS <contact@sudip-lamichhane.com.np>',
+    to: email,
+    subject: "Verify your email address",
+    html: `
+      <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #111;">
+        <h2 style="margin: 0 0 12px;">Email verification</h2>
+        <p style="margin: 0 0 12px;">Use this OTP to verify your email address:</p>
+        <div style="font-size: 28px; font-weight: 700; letter-spacing: 6px; margin: 8px 0 14px;">${otp}</div>
+        <p style="margin: 0 0 8px;">This code expires in ${OTP_EXPIRY_MINUTES} minutes.</p>
+        <p style="margin: 0; color: #666;">If you did not request this, you can ignore this email.</p>
+      </div>
+    `,
+  });
+}
+
+export async function requestEmailVerificationOtpAction(): Promise<AuthActionReturn> {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return {
+      success: false,
+      error: "You must be logged in",
+    };
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        id: true,
+        email: true,
+        emailVerified: true,
+      },
+    });
+
+    if (!user) {
+      return {
+        success: false,
+        error: "User account not found",
+      };
+    }
+
+    if (user.emailVerified) {
+      return {
+        success: true,
+        message: "Your email is already verified.",
+      };
+    }
+
+    const email = user.email.toLowerCase().trim();
+
+    const latestToken = await prisma.passwordResetToken.findFirst({
+      where: {
+        email,
+        purpose: "VERIFY_EMAIL",
+        consumedAt: null,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      select: {
+        id: true,
+        createdAt: true,
+      },
+    });
+
+    if (latestToken) {
+      const secondsSinceLastIssue =
+        (Date.now() - latestToken.createdAt.getTime()) / 1000;
+
+      if (secondsSinceLastIssue < OTP_RESEND_COOLDOWN_SECONDS) {
+        return {
+          success: true,
+          message: "A verification OTP has been sent to your email.",
+        };
+      }
+    }
+
+    const otp = generateNumericOtp(email);
+    const otpHash = getOtpVerificationHash(email, otp);
+    const otpExpiresAt = new Date(
+      Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000,
+    );
+
+    await prisma.passwordResetToken.create({
+      data: {
+        email,
+        purpose: "VERIFY_EMAIL",
+        otpHash,
+        otpExpiresAt,
+        maxAttempts: OTP_MAX_ATTEMPTS,
+      },
+    });
+
+    try {
+      await sendVerifyEmailOtpEmail(email, otp);
+    } catch (emailError) {
+      console.error("Failed to send verify email OTP:", emailError);
+      return {
+        success: false,
+        error: "Unable to send OTP right now. Please try again.",
+      };
+    }
+
+    return {
+      success: true,
+      message: "A verification OTP has been sent to your email.",
+    };
+  } catch (error) {
+    console.error("Error requesting verify email OTP:", error);
+    return {
+      success: false,
+      error: "Unable to process request right now. Please try again.",
+    };
+  }
+}
+
+export async function verifyEmailOtpAction(
+  formData: VerifyEmailOtpType,
+): Promise<AuthActionReturn> {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return {
+      success: false,
+      error: "You must be logged in",
+    };
+  }
+
+  const parsed = VerifyEmailOtpSchema.safeParse(formData);
+
+  if (!parsed.success) {
+    const firstError = parsed.error.issues[0];
+    return {
+      success: false,
+      error: firstError?.message || "Invalid OTP input",
+    };
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: session.user.id,
+      },
+      select: {
+        id: true,
+        email: true,
+        emailVerified: true,
+      },
+    });
+
+    if (!user) {
+      return {
+        success: false,
+        error: "User account not found",
+      };
+    }
+
+    if (user.emailVerified) {
+      return {
+        success: true,
+        message: "Your email is already verified.",
+      };
+    }
+
+    const email = user.email.toLowerCase().trim();
+    const otpInputHash = getOtpVerificationHash(email, parsed.data.otp);
+
+    const tokenRecord = await prisma.passwordResetToken.findFirst({
+      where: {
+        email,
+        purpose: "VERIFY_EMAIL",
+        consumedAt: null,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    if (!tokenRecord) {
+      return {
+        success: false,
+        error: "Invalid or expired OTP",
+      };
+    }
+
+    if (tokenRecord.attempts >= tokenRecord.maxAttempts) {
+      return {
+        success: false,
+        error: "Too many attempts. Please request a new OTP.",
+      };
+    }
+
+    if (tokenRecord.otpExpiresAt.getTime() < Date.now()) {
+      return {
+        success: false,
+        error: "OTP has expired. Please request a new one.",
+      };
+    }
+
+    if (tokenRecord.otpHash !== otpInputHash) {
+      await prisma.passwordResetToken.update({
+        where: { id: tokenRecord.id },
+        data: {
+          attempts: {
+            increment: 1,
+          },
+        },
+      });
+
+      return {
+        success: false,
+        error: "Invalid OTP",
+      };
+    }
+
+    await prisma.$transaction([
+      prisma.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          emailVerified: new Date(),
+        },
+      }),
+      prisma.passwordResetToken.update({
+        where: {
+          id: tokenRecord.id,
+        },
+        data: {
+          verifiedAt: new Date(),
+          consumedAt: new Date(),
+        },
+      }),
+    ]);
+
+    return {
+      success: true,
+      message: "Email verified successfully.",
+    };
+  } catch (error) {
+    console.error("Error verifying email OTP:", error);
+    return {
+      success: false,
+      error: "Unable to verify OTP right now. Please try again.",
+    };
+  }
+}
+
+export async function requestForgotPasswordOtpAction(
+  formData: ForgotPasswordEmailType,
+): Promise<AuthActionReturn> {
+  const parsed = ForgotPasswordEmailSchema.safeParse(formData);
+
+  if (!parsed.success) {
+    const firstError = parsed.error.issues[0];
+    return {
+      success: false,
+      error: firstError?.message || "Please enter a valid email address",
+    };
+  }
+
+  const email = parsed.data.email.toLowerCase().trim();
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true },
+    });
+
+    // Always return the same message to avoid account enumeration.
+    if (!user) {
+      return {
+        success: true,
+        message: "If an account exists for this email, an OTP has been sent.",
+      };
+    }
+
+    const latestToken = await prisma.passwordResetToken.findFirst({
+      where: {
+        email,
+        purpose: "FORGOT_PASSWORD",
+        consumedAt: null,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      select: {
+        id: true,
+        createdAt: true,
+      },
+    });
+
+    if (latestToken) {
+      const secondsSinceLastIssue =
+        (Date.now() - latestToken.createdAt.getTime()) / 1000;
+
+      if (secondsSinceLastIssue < OTP_RESEND_COOLDOWN_SECONDS) {
+        return {
+          success: true,
+          message: "If an account exists for this email, an OTP has been sent.",
+        };
+      }
+    }
+
+    const otp = generateNumericOtp(email);
+    const otpHash = getOtpVerificationHash(email, otp);
+    const otpExpiresAt = new Date(
+      Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000,
+    );
+
+    await prisma.passwordResetToken.create({
+      data: {
+        email,
+        purpose: "FORGOT_PASSWORD",
+        otpHash,
+        otpExpiresAt,
+        maxAttempts: OTP_MAX_ATTEMPTS,
+      },
+    });
+
+    try {
+      await sendForgotPasswordOtpEmail(email, otp);
+    } catch (emailError) {
+      console.error("Failed to send forgot password OTP email:", emailError);
+    }
+
+    return {
+      success: true,
+      message: "If an account exists for this email, an OTP has been sent.",
+    };
+  } catch (error) {
+    console.error("Error requesting forgot password OTP:", error);
+    return {
+      success: false,
+      error: "Unable to process request right now. Please try again.",
+    };
+  }
+}
+
+export async function verifyForgotPasswordOtpAction(
+  formData: ForgotPasswordVerifyOtpType,
+): Promise<ForgotPasswordVerifyOtpActionReturn> {
+  const parsed = ForgotPasswordVerifyOtpSchema.safeParse(formData);
+
+  if (!parsed.success) {
+    const firstError = parsed.error.issues[0];
+    return {
+      success: false,
+      error: firstError?.message || "Invalid OTP input",
+    };
+  }
+
+  const email = parsed.data.email.toLowerCase().trim();
+  const otpInputHash = getOtpVerificationHash(email, parsed.data.otp);
+
+  try {
+    const tokenRecord = await prisma.passwordResetToken.findFirst({
+      where: {
+        email,
+        purpose: "FORGOT_PASSWORD",
+        consumedAt: null,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    if (!tokenRecord) {
+      return {
+        success: false,
+        error: "Invalid or expired OTP",
+      };
+    }
+
+    if (tokenRecord.attempts >= tokenRecord.maxAttempts) {
+      return {
+        success: false,
+        error: "Too many attempts. Please request a new OTP.",
+      };
+    }
+
+    if (tokenRecord.otpExpiresAt.getTime() < Date.now()) {
+      return {
+        success: false,
+        error: "OTP has expired. Please request a new one.",
+      };
+    }
+
+    if (tokenRecord.otpHash !== otpInputHash) {
+      await prisma.passwordResetToken.update({
+        where: { id: tokenRecord.id },
+        data: {
+          attempts: {
+            increment: 1,
+          },
+        },
+      });
+
+      return {
+        success: false,
+        error: "Invalid OTP",
+      };
+    }
+
+    const resetToken = randomBytes(32).toString("hex");
+    const resetTokenHash = getResetTokenHash(resetToken);
+    const resetTokenExpiresAt = new Date(
+      Date.now() + RESET_SESSION_EXPIRY_MINUTES * 60 * 1000,
+    );
+
+    await prisma.passwordResetToken.update({
+      where: { id: tokenRecord.id },
+      data: {
+        verifiedAt: new Date(),
+        resetTokenHash,
+        resetTokenExpiresAt,
+      },
+    });
+
+    return {
+      success: true,
+      message: "OTP verified successfully",
+      resetToken,
+    };
+  } catch (error) {
+    console.error("Error verifying forgot password OTP:", error);
+    return {
+      success: false,
+      error: "Unable to verify OTP. Please try again.",
+    };
+  }
+}
+
+export async function resetForgotPasswordAction(
+  formData: ForgotPasswordResetWithTokenType,
+): Promise<ForgotPasswordResetActionReturn> {
+  const parsed = ForgotPasswordResetWithTokenSchema.safeParse(formData);
+
+  if (!parsed.success) {
+    const firstError = parsed.error.issues[0];
+    return {
+      success: false,
+      error: firstError?.message || "Invalid reset request",
+    };
+  }
+
+  const email = parsed.data.email.toLowerCase().trim();
+  const resetTokenHash = getResetTokenHash(parsed.data.resetToken);
+
+  try {
+    const tokenRecord = await prisma.passwordResetToken.findFirst({
+      where: {
+        email,
+        purpose: "FORGOT_PASSWORD",
+        consumedAt: null,
+        verifiedAt: {
+          not: null,
+        },
+        resetTokenHash,
+        resetTokenExpiresAt: {
+          gt: new Date(),
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    if (!tokenRecord) {
+      return {
+        success: false,
+        error: "Invalid or expired password reset session",
+      };
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!user) {
+      return {
+        success: false,
+        error: "Unable to reset password. Please try again.",
+      };
+    }
+
+    const nextSalt = generateSalt();
+    const nextPasswordHash = customHash(parsed.data.newPassword, nextSalt);
+
+    await prisma.$transaction([
+      prisma.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          salt: nextSalt,
+          password: nextPasswordHash,
+        },
+      }),
+      prisma.session.deleteMany({
+        where: {
+          userId: user.id,
+        },
+      }),
+      prisma.passwordResetToken.update({
+        where: {
+          id: tokenRecord.id,
+        },
+        data: {
+          consumedAt: new Date(),
+        },
+      }),
+    ]);
+
+    try {
+      await signIn("credentials", {
+        email,
+        password: parsed.data.newPassword,
+        redirect: false,
+      });
+
+      return {
+        success: true,
+        loggedIn: true,
+        message: "Password reset successful. You are now logged in.",
+      };
+    } catch (signInError) {
+      if (signInError instanceof AuthError) {
+        console.error("Post-reset auto login failed:", signInError);
+      }
+
+      return {
+        success: true,
+        loggedIn: false,
+        message: "Password reset successful. Please login with your new password.",
+      };
+    }
+  } catch (error) {
+    console.error("Error resetting forgot password:", error);
+    return {
+      success: false,
+      error: "Unable to reset password right now. Please try again.",
+    };
+  }
+}
 
 export async function updateProfileAction(
   formData: ProfileEditInput
@@ -56,11 +699,32 @@ export async function updateProfileAction(
   }
 
   try {
+    const currentUser = await prisma.user.findUnique({
+      where: {
+        id: session.user.id,
+      },
+      select: {
+        id: true,
+        email: true,
+      },
+    });
+
+    if (!currentUser) {
+      return {
+        success: false,
+        error: "User account not found",
+      };
+    }
+
+    const normalizedCurrentEmail = currentUser.email.toLowerCase().trim();
+    const normalizedNextEmail = parsed.data.email.toLowerCase().trim();
+    const emailChanged = normalizedCurrentEmail !== normalizedNextEmail;
+
     const existing = await prisma.user.findFirst({
       where: {
         email: parsed.data.email,
         NOT: {
-          id: session.user.id,
+          id: currentUser.id,
         },
       },
       select: {
@@ -82,6 +746,11 @@ export async function updateProfileAction(
       data: {
         name: parsed.data.name,
         email: parsed.data.email,
+        ...(emailChanged
+          ? {
+              emailVerified: null,
+            }
+          : {}),
         image:
           parsed.data.image === "" || parsed.data.image === DEFAULT_PROFILE_IMAGE
             ? null
@@ -93,6 +762,7 @@ export async function updateProfileAction(
         email: true,
         role: true,
         image: true,
+        emailVerified: true,
       },
     });
 
@@ -116,6 +786,7 @@ export async function updateProfileAction(
         email: updatedUser.email,
         role: updatedUser.role,
         image: updatedUser.image,
+        emailVerified: !!updatedUser.emailVerified,
       },
     };
   } catch (error) {

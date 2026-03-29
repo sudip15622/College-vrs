@@ -3,16 +3,36 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMemo, useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
-import { BadgeCheck, Camera, PencilLine, Shield, UserRound, X } from "lucide-react";
+import {
+  BadgeCheck,
+  Camera,
+  PencilLine,
+  Shield,
+  UserRound,
+  X,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { ProfileEditInput, ProfileEditSchema, ProfileEditType } from "@/lib/schemas/profile";
+import {
+  ProfileEditInput,
+  ProfileEditSchema,
+  ProfileEditType,
+} from "@/lib/schemas/profile";
 import { updateProfileAction } from "@/lib/actions/auth";
+import { RiVerifiedBadgeFill } from "react-icons/ri";
+import Link from "next/link";
 
 type ProfileData = {
   id: string;
@@ -20,6 +40,7 @@ type ProfileData = {
   email: string;
   role: string;
   image: string | null;
+  emailVerified?: boolean;
 };
 
 type ProfilePageClientProps = {
@@ -83,11 +104,17 @@ const ProfilePageClient = ({ profile }: ProfilePageClientProps) => {
     }
 
     if (result.profile) {
-      setSavedProfile(result.profile);
+      const updatedProfile = result.profile;
+
+      setSavedProfile((prev) => ({
+        ...prev,
+        ...updatedProfile,
+        emailVerified: updatedProfile.emailVerified,
+      }));
       reset({
-        name: result.profile.name,
-        email: result.profile.email,
-        image: toFormImageValue(result.profile.image),
+        name: updatedProfile.name,
+        email: updatedProfile.email,
+        image: toFormImageValue(updatedProfile.image),
       });
     }
 
@@ -101,20 +128,32 @@ const ProfilePageClient = ({ profile }: ProfilePageClientProps) => {
       <div className="mb-8 flex items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold mb-2">My Profile</h1>
-          <p className="text-muted-foreground">View your account info and update your details.</p>
+          <p className="text-muted-foreground">
+            View your account info and update your details.
+          </p>
         </div>
 
-        {!isEditing ? (
-          <Button onClick={() => setIsEditing(true)}>
-            <PencilLine className="size-4" />
-            Edit Profile
-          </Button>
-        ) : (
-          <Button variant="outline" onClick={onCancel}>
-            <X className="size-4" />
-            Cancel
-          </Button>
-        )}
+        <div className="flex gap-5 items-center justify-end">
+          {!profile.emailVerified && (
+            <Button asChild variant="outline">
+              <Link href="/verify-email">
+                <RiVerifiedBadgeFill className="size-4 text-primary/80" />
+                Verify Email
+              </Link>
+            </Button>
+          )}
+          {!isEditing ? (
+            <Button onClick={() => setIsEditing(true)}>
+              <PencilLine className="size-4" />
+              Edit Profile
+            </Button>
+          ) : (
+            <Button variant="destructive" onClick={onCancel}>
+              <X className="size-4" />
+              Cancel
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
@@ -125,20 +164,33 @@ const ProfilePageClient = ({ profile }: ProfilePageClientProps) => {
           </CardHeader>
 
           <CardContent className="space-y-5">
-            <div className="relative w-28 h-28 rounded-full ring-2 ring-border mx-auto overflow-hidden bg-muted flex items-center justify-center">
+            <div className="relative w-28 h-28 rounded-full ring-2 ring-border mx-auto bg-muted flex items-center justify-center">
               {previewImage ? (
-                <div
-                  className="w-full h-full bg-cover bg-center"
-                  style={{ backgroundImage: `url(${previewImage})` }}
-                />
+                <div className="w-full h-full overflow-hidden rounded-full">
+                  <div
+                    className="w-full h-full bg-cover bg-center"
+                    style={{ backgroundImage: `url(${previewImage})` }}
+                  />
+                </div>
               ) : (
-                <span className="text-2xl font-semibold tracking-wide">{initials}</span>
+                <span className="text-2xl font-semibold tracking-wide">
+                  {initials}
+                </span>
+              )}
+              {savedProfile.emailVerified && (
+                <span className="absolute text-xl right-1 bottom-1 bg-card rounded-full p-px">
+                  <RiVerifiedBadgeFill />
+                </span>
               )}
             </div>
 
             <div className="text-center">
-              <h2 className="text-xl font-semibold wrap-break-word">{formValues.name || "Unnamed User"}</h2>
-              <p className="text-sm text-muted-foreground break-all">{formValues.email}</p>
+              <h2 className="text-xl font-semibold wrap-break-word">
+                {formValues.name || "Unnamed User"}
+              </h2>
+              <p className="text-sm text-muted-foreground break-all">
+                {formValues.email}
+              </p>
             </div>
 
             <div className="flex items-center justify-center">
@@ -171,7 +223,11 @@ const ProfilePageClient = ({ profile }: ProfilePageClientProps) => {
           </CardHeader>
 
           <CardContent>
-            <form id="profile-edit-form" className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
+            <form
+              id="profile-edit-form"
+              className="space-y-5"
+              onSubmit={handleSubmit(onSubmit)}
+            >
               <div className="grid gap-2">
                 <Label htmlFor="name">Full Name</Label>
                 <Controller
@@ -188,7 +244,11 @@ const ProfilePageClient = ({ profile }: ProfilePageClientProps) => {
                     />
                   )}
                 />
-                {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+                {errors.name && (
+                  <p className="text-sm text-destructive">
+                    {errors.name.message}
+                  </p>
+                )}
               </div>
 
               <div className="grid gap-2">
@@ -208,7 +268,11 @@ const ProfilePageClient = ({ profile }: ProfilePageClientProps) => {
                     />
                   )}
                 />
-                {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+                {errors.email && (
+                  <p className="text-sm text-destructive">
+                    {errors.email.message}
+                  </p>
+                )}
               </div>
 
               <div className="grid gap-2">
@@ -228,10 +292,15 @@ const ProfilePageClient = ({ profile }: ProfilePageClientProps) => {
                     />
                   )}
                 />
-                {errors.image && <p className="text-sm text-destructive">{errors.image.message}</p>}
+                {errors.image && (
+                  <p className="text-sm text-destructive">
+                    {errors.image.message}
+                  </p>
+                )}
                 <p className="text-xs text-muted-foreground flex items-center gap-1.5">
                   <Camera className="size-3.5" />
-                  You can connect this to upload flow later.
+                  You can use the profile url of you other social media
+                  platforms.
                 </p>
               </div>
             </form>
@@ -240,16 +309,24 @@ const ProfilePageClient = ({ profile }: ProfilePageClientProps) => {
           <CardFooter className="justify-end gap-2 bg-inherit">
             {isEditing ? (
               <>
-                <Button type="button" variant="outline" onClick={onCancel}>
+                <Button type="button" variant="destructive" onClick={onCancel}>
                   Discard
                 </Button>
-                <Button type="submit" form="profile-edit-form" disabled={isSubmitting}>
+                <Button
+                  type="submit"
+                  form="profile-edit-form"
+                  disabled={isSubmitting}
+                >
                   <BadgeCheck className="size-4" />
                   {isSubmitting ? "Saving..." : "Save Changes"}
                 </Button>
               </>
             ) : (
-              <Button type="button" variant="secondary" onClick={() => setIsEditing(true)}>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setIsEditing(true)}
+              >
                 <PencilLine className="size-4" />
                 Start Editing
               </Button>

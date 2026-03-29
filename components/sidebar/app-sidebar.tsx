@@ -73,7 +73,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
             <SidebarMenuButton
               size="lg"
               asChild
-              className={pathname === "/hosting" ? "bg-accent" : ""}
+              // className={pathname === "/hosting" ? "bg-accent" : ""}
             >
               <Link href="/hosting">
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">

@@ -1,17 +1,7 @@
 import React from "react";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbPage,
-} from "@/components/ui/breadcrumb";
-import BookingStatusDistribution from "@/components/dashboard/BookingStatusDistribution";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bike, Calendar, Users, TrendingUp } from "lucide-react";
-import BookingsTrend from "@/components/dashboard/BookingsTrend";
-import RevenueTrend from "@/components/dashboard/RevenueTrend";
-import RevenueByVehicle from "@/components/dashboard/RevenueByVehicle";
-import TopVehiclesByBookings from "@/components/dashboard/TopVehiclesByBookings";
+import HostingDashboardChartsClient from "@/components/dashboard/HostingDashboardChartsClient";
 import {
   getDashboardStatsData,
   getBookingStatusDistributionData,
@@ -90,40 +80,25 @@ const HostingDashboard = async () => {
         ))}
       </div>
 
-      <div className="space-y-4 mt-4">
-        <h2 className="text-lg font-medium">Revenue & Financial Analytics</h2>
-        <div className="space-y-4">
-          <RevenueTrend initialData={revenueTrendData} />
-          <RevenueByVehicle
-            dataByRange={{
-              "30d": revenueByVehicle30,
-              "7d": revenueByVehicle7,
-              "3m": revenueByVehicle90,
-            }}
-          />
-        </div>
-      </div>
-
-      <div className="space-y-4 mt-6">
-        <h2 className="text-lg font-medium">Booking Analytics</h2>
-        <BookingsTrend initialData={bookingTrendData} />
-        <div className="grid gap-4 md:grid-cols-2">
-          <BookingStatusDistribution
-            dataByRange={{
-              "30d": bookingStatusDistribution30,
-              "7d": bookingStatusDistribution7,
-              "3m": bookingStatusDistribution90,
-            }}
-          />
-          <TopVehiclesByBookings
-            dataByRange={{
-              "30d": topVehiclesByBookings30,
-              "7d": topVehiclesByBookings7,
-              "3m": topVehiclesByBookings90,
-            }}
-          />
-        </div>
-      </div>
+      <HostingDashboardChartsClient
+        revenueTrendData={revenueTrendData}
+        revenueByVehicleDataByRange={{
+          "30d": revenueByVehicle30,
+          "7d": revenueByVehicle7,
+          "3m": revenueByVehicle90,
+        }}
+        bookingTrendData={bookingTrendData}
+        bookingStatusDistributionDataByRange={{
+          "30d": bookingStatusDistribution30,
+          "7d": bookingStatusDistribution7,
+          "3m": bookingStatusDistribution90,
+        }}
+        topVehiclesByBookingsDataByRange={{
+          "30d": topVehiclesByBookings30,
+          "7d": topVehiclesByBookings7,
+          "3m": topVehiclesByBookings90,
+        }}
+      />
     </>
   );
 };

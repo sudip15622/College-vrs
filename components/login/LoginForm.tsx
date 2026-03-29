@@ -7,11 +7,15 @@ import { Button } from "@/components/ui/button";
 import { LoginAction } from "@/lib/actions/auth";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
+import { BiSolidHide, BiSolidShow } from "react-icons/bi";
+import React from "react";
+import Link from "next/link";
 
 const LoginForm = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = searchParams.get("returnTo") || "/";
+  const [showPassword, setShowPassword] = React.useState(false);
   const {
     control,
     handleSubmit,
@@ -27,25 +31,25 @@ const LoginForm = () => {
     },
   });
 
-  const onSubmit: SubmitHandler<LoginType> = async(data) => {
-      if(isSubmitting) return;
-  
-      try {
-        const response = await LoginAction(data);
-  
-        if(response.success) {
-          toast.success(response.message || "Logged in successfully!");
-          reset();
-          router.push(returnTo);
-          router.refresh();
-        } else {
-          toast.error(response.error || "Failed to login");
-        }
-      } catch (error) {
-        console.error("Login error:", error);
-        toast.error("An unexpected error occurred. Please try again");
+  const onSubmit: SubmitHandler<LoginType> = async (data) => {
+    if (isSubmitting) return;
+
+    try {
+      const response = await LoginAction(data);
+
+      if (response.success) {
+        toast.success(response.message || "Logged in successfully!");
+        reset();
+        router.push(returnTo);
+        router.refresh();
+      } else {
+        toast.error(response.error || "Failed to login");
       }
-    };
+    } catch (error) {
+      console.error("Login error:", error);
+      toast.error("An unexpected error occurred. Please try again");
+    }
+  };
 
   return (
     <form
@@ -76,29 +80,53 @@ const LoginForm = () => {
       </div>
 
       <div className="flex flex-col gap-2">
-        <label htmlFor="password" className="text-sm font-medium text-foreground">
+        <label
+          htmlFor="password"
+          className="text-sm font-medium text-foreground"
+        >
           Password
         </label>
-        <Controller
-          name="password"
-          control={control}
-          render={({ field }) => (
-            <Input
-              {...field}
-              id="password"
-              type="password"
-              placeholder="Enter your password"
-              aria-invalid={!!errors.password}
-              className={errors.password ? "border-destructive" : ""}
-            />
-          )}
-        />
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute top-1/2 right-2 -translate-y-1/2 bg-none text-muted-foreground hover:text-primary duration-200 transition-colors ease-in-out cursor-pointer"
+          >
+            {showPassword ? <BiSolidHide /> : <BiSolidShow />}
+          </button>
+          <Controller
+            name="password"
+            control={control}
+            render={({ field }) => (
+              <Input
+                {...field}
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter your password"
+                aria-invalid={!!errors.password}
+                className={errors.password ? "border-destructive pr-8" : "pr-8"}
+              />
+            )}
+          />
+        </div>
         {errors.password && (
           <p className="text-sm text-destructive">{errors.password.message}</p>
         )}
       </div>
+      <Link
+        href="/forgot-password"
+        className="text-left text-primary/90 hover:text-primary underline duration-200 transition-colors ease-in-out text-sm w-fit"
+      >
+        Forgot password?
+      </Link>
 
-      <Button type="submit" variant="default" size="lg" disabled={isSubmitting} className="w-full">
+      <Button
+        type="submit"
+        variant="default"
+        size="lg"
+        disabled={isSubmitting}
+        className="w-full"
+      >
         {isSubmitting ? (
           <>
             <svg

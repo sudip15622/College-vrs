@@ -77,3 +77,11 @@ export const RefundStatus = {
 } as const
 
 export type RefundStatus = (typeof RefundStatus)[keyof typeof RefundStatus]
+
+
+export const PasswordResetPurpose = {
+  FORGOT_PASSWORD: 'FORGOT_PASSWORD',
+  VERIFY_EMAIL: 'VERIFY_EMAIL'
+} as const
+
+export type PasswordResetPurpose = (typeof PasswordResetPurpose)[keyof typeof PasswordResetPurpose]

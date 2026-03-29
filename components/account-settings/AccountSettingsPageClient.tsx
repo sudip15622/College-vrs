@@ -28,15 +28,19 @@ import {
   changePasswordAction,
   deleteOwnAccountAction,
 } from "@/lib/actions/auth";
+import Link from "next/link";
+import { RiVerifiedBadgeFill } from "react-icons/ri";
 
 type AccountSettingsPageClientProps = {
   userName: string;
   email: string;
+  emailVerified?: boolean;
 };
 
 const AccountSettingsPageClient = ({
   userName,
   email,
+  emailVerified,
 }: AccountSettingsPageClientProps) => {
   const router = useRouter();
 
@@ -44,10 +48,7 @@ const AccountSettingsPageClient = ({
     control: passwordControl,
     handleSubmit: handlePasswordSubmit,
     reset: resetPasswordForm,
-    formState: {
-      errors: passwordErrors,
-      isSubmitting: isChangingPassword,
-    },
+    formState: { errors: passwordErrors, isSubmitting: isChangingPassword },
   } = useForm<ChangePasswordInput, any, ChangePasswordType>({
     resolver: zodResolver(ChangePasswordSchema),
     mode: "onChange",
@@ -63,10 +64,7 @@ const AccountSettingsPageClient = ({
     control: deleteControl,
     handleSubmit: handleDeleteSubmit,
     reset: resetDeleteForm,
-    formState: {
-      errors: deleteErrors,
-      isSubmitting: isDeletingAccount,
-    },
+    formState: { errors: deleteErrors, isSubmitting: isDeletingAccount },
   } = useForm<DeleteAccountInput, any, DeleteAccountType>({
     resolver: zodResolver(DeleteAccountSchema),
     mode: "onChange",
@@ -119,7 +117,8 @@ const AccountSettingsPageClient = ({
         <CardHeader>
           <CardTitle>Signed in as</CardTitle>
           <CardDescription>
-            Make sure these account details are correct before changing security settings.
+            Make sure these account details are correct before changing security
+            settings.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-1">
@@ -127,6 +126,29 @@ const AccountSettingsPageClient = ({
           <p className="text-muted-foreground">{email}</p>
         </CardContent>
       </Card>
+
+      {!emailVerified && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <RiVerifiedBadgeFill className="size-4" />
+              Verify Email
+            </CardTitle>
+            <CardDescription>
+              Your email is not verified yet. Verify it to secure your account.
+            </CardDescription>
+          </CardHeader>
+
+          <CardFooter className="justify-end">
+            <Button asChild variant="outline">
+              <Link href="/verify-email">
+                <RiVerifiedBadgeFill className="size-4" />
+                Go to Verify Email
+              </Link>
+            </Button>
+          </CardFooter>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>
@@ -157,13 +179,17 @@ const AccountSettingsPageClient = ({
                     type="password"
                     disabled={isChangingPassword}
                     aria-invalid={!!passwordErrors.currentPassword}
-                    className={passwordErrors.currentPassword ? "border-destructive" : ""}
+                    className={
+                      passwordErrors.currentPassword ? "border-destructive" : ""
+                    }
                     placeholder="Enter your current password"
                   />
                 )}
               />
               {passwordErrors.currentPassword && (
-                <p className="text-sm text-destructive">{passwordErrors.currentPassword.message}</p>
+                <p className="text-sm text-destructive">
+                  {passwordErrors.currentPassword.message}
+                </p>
               )}
             </div>
 
@@ -179,13 +205,17 @@ const AccountSettingsPageClient = ({
                     type="password"
                     disabled={isChangingPassword}
                     aria-invalid={!!passwordErrors.newPassword}
-                    className={passwordErrors.newPassword ? "border-destructive" : ""}
+                    className={
+                      passwordErrors.newPassword ? "border-destructive" : ""
+                    }
                     placeholder="Create a new password"
                   />
                 )}
               />
               {passwordErrors.newPassword && (
-                <p className="text-sm text-destructive">{passwordErrors.newPassword.message}</p>
+                <p className="text-sm text-destructive">
+                  {passwordErrors.newPassword.message}
+                </p>
               )}
             </div>
 
@@ -201,19 +231,31 @@ const AccountSettingsPageClient = ({
                     type="password"
                     disabled={isChangingPassword}
                     aria-invalid={!!passwordErrors.confirmNewPassword}
-                    className={passwordErrors.confirmNewPassword ? "border-destructive" : ""}
+                    className={
+                      passwordErrors.confirmNewPassword
+                        ? "border-destructive"
+                        : ""
+                    }
                     placeholder="Re-enter your new password"
                   />
                 )}
               />
               {passwordErrors.confirmNewPassword && (
-                <p className="text-sm text-destructive">{passwordErrors.confirmNewPassword.message}</p>
+                <p className="text-sm text-destructive">
+                  {passwordErrors.confirmNewPassword.message}
+                </p>
               )}
             </div>
           </form>
         </CardContent>
 
-        <CardFooter className="justify-end">
+        <CardFooter className="justify-between">
+          <Link
+            href="/forgot-password"
+            className="text-left text-primary/90 hover:text-primary underline duration-200 transition-colors ease-in-out text-sm w-fit"
+          >
+            Forgot password?
+          </Link>
           <Button
             type="submit"
             form="change-password-form"
@@ -231,7 +273,8 @@ const AccountSettingsPageClient = ({
             Delete Account
           </CardTitle>
           <CardDescription>
-            This action is permanent. Your bookings and sessions will be removed and cannot be recovered.
+            This action is permanent. Your bookings and sessions will be removed
+            and cannot be recovered.
           </CardDescription>
         </CardHeader>
 
@@ -253,13 +296,17 @@ const AccountSettingsPageClient = ({
                     type="password"
                     disabled={isDeletingAccount}
                     aria-invalid={!!deleteErrors.password}
-                    className={deleteErrors.password ? "border-destructive" : ""}
+                    className={
+                      deleteErrors.password ? "border-destructive" : ""
+                    }
                     placeholder="Enter your password"
                   />
                 )}
               />
               {deleteErrors.password && (
-                <p className="text-sm text-destructive">{deleteErrors.password.message}</p>
+                <p className="text-sm text-destructive">
+                  {deleteErrors.password.message}
+                </p>
               )}
             </div>
 
@@ -274,13 +321,17 @@ const AccountSettingsPageClient = ({
                     id="confirmationText"
                     disabled={isDeletingAccount}
                     aria-invalid={!!deleteErrors.confirmationText}
-                    className={deleteErrors.confirmationText ? "border-destructive" : ""}
+                    className={
+                      deleteErrors.confirmationText ? "border-destructive" : ""
+                    }
                     placeholder="DELETE"
                   />
                 )}
               />
               {deleteErrors.confirmationText && (
-                <p className="text-sm text-destructive">{deleteErrors.confirmationText.message}</p>
+                <p className="text-sm text-destructive">
+                  {deleteErrors.confirmationText.message}
+                </p>
               )}
             </div>
           </form>

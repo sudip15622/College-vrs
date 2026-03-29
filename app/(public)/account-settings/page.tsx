@@ -19,6 +19,7 @@ async function AccountSettingsContent() {
     select: {
       name: true,
       email: true,
+      emailVerified: true,
     },
   });
 
@@ -26,7 +27,13 @@ async function AccountSettingsContent() {
     redirect("/login?returnTo=/account-settings");
   }
 
-  return <AccountSettingsPageClient userName={user.name} email={user.email} />;
+  return (
+    <AccountSettingsPageClient
+      userName={user.name}
+      email={user.email}
+      emailVerified={user.emailVerified ? true : false}
+    />
+  );
 }
 
 function AccountSettingsSkeleton() {

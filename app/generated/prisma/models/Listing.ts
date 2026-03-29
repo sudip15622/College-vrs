@@ -593,14 +593,6 @@ export type EnumTransmissionTypeFieldUpdateOperationsInput = {
   set?: $Enums.TransmissionType
 }
 
-export type IntFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type EnumVehicleConditionFieldUpdateOperationsInput = {
   set?: $Enums.VehicleCondition
 }

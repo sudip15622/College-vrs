@@ -22,6 +22,7 @@ async function ProfileContent() {
       email: true,
       role: true,
       image: true,
+      emailVerified: true,
     },
   });
 
@@ -37,6 +38,7 @@ async function ProfileContent() {
         email: user.email,
         role: user.role,
         image: user.image,
+        emailVerified: user.emailVerified ? true : false,
       }}
     />
   );
