@@ -141,7 +141,7 @@ const AccountSettingsPageClient = ({
 
           <CardFooter className="justify-end">
             <Button asChild variant="outline">
-              <Link href="/verify-email">
+              <Link href="/verify-email?returnTo=%2Faccount-settings">
                 <RiVerifiedBadgeFill className="size-4" />
                 Go to Verify Email
               </Link>

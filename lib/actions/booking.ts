@@ -19,6 +19,13 @@ export async function InitiateBooking(
       };
     }
 
+    if (!session.user.emailVerified) {
+      return {
+        success: false,
+        error: "Please verify your email before booking vehicles.",
+      };
+    }
+
     // 2. Validate dates
     const startDate = new Date(details.startDate);
     const endDate = new Date(details.endDate);
@@ -228,6 +235,13 @@ export async function getBookingById(bookingId: string) {
       };
     }
 
+    if (!session.user.emailVerified) {
+      return {
+        success: false,
+        error: "Please verify your email before making payments.",
+      };
+    }
+
     const booking = await prisma.booking.findUnique({
       where: {
         id: bookingId,
@@ -432,6 +446,13 @@ export async function cancelBooking(bookingId: string, reason?: string) {
       return {
         success: false,
         error: "You must be logged in to cancel a booking",
+      };
+    }
+
+    if (!session.user.emailVerified) {
+      return {
+        success: false,
+        error: "Please verify your email before cancelling bookings.",
       };
     }
 

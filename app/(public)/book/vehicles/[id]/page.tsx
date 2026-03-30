@@ -23,20 +23,24 @@ async function BookingPageSection({ params, searchParams }: BookingPageProps) {
 
   const session = await auth();
 
+  // Build the return URL with search params
+  const returnUrl = `/book/vehicles/${vehicleId}`;
+  const searchParamsString = new URLSearchParams();
+
+  if (allSearchParams.from) searchParamsString.set("from", allSearchParams.from);
+  if (allSearchParams.to) searchParamsString.set("to", allSearchParams.to);
+
+  const fullReturnUrl = searchParamsString.toString()
+    ? `${returnUrl}?${searchParamsString.toString()}`
+    : returnUrl;
+
   if (!session) {
-    // Build the return URL with search params
-    const returnUrl = `/book/vehicles/${vehicleId}`;
-    const searchParamsString = new URLSearchParams();
-
-    if (allSearchParams.from)
-      searchParamsString.set("from", allSearchParams.from);
-    if (allSearchParams.to) searchParamsString.set("to", allSearchParams.to);
-
-    const fullReturnUrl = searchParamsString.toString()
-      ? `${returnUrl}?${searchParamsString.toString()}`
-      : returnUrl;
-
     redirect(`/login?returnTo=${encodeURIComponent(fullReturnUrl)}`);
+    return null;
+  }
+
+  if (!session.user.emailVerified) {
+    redirect(`/verify-email?returnTo=${encodeURIComponent(fullReturnUrl)}`);
     return null;
   }
 

@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -52,9 +53,16 @@ const VerifyEmailForm = ({
   email,
   isAlreadyVerified,
 }: VerifyEmailFormProps) => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [step, setStep] = React.useState<VerifyStep>(1);
   const [isSendingOtp, setIsSendingOtp] = React.useState(false);
   const [isVerified, setIsVerified] = React.useState(isAlreadyVerified);
+
+  const returnToParam = searchParams.get("returnTo");
+  const returnTo =
+    returnToParam && returnToParam.startsWith("/") ? returnToParam : "/";
 
   const {
     control,
@@ -99,6 +107,7 @@ const VerifyEmailForm = ({
 
     toast.success(response.message || "Email verified successfully");
     setIsVerified(true);
+    router.replace(returnTo);
   };
 
   if (isVerified) {
@@ -111,7 +120,7 @@ const VerifyEmailForm = ({
           Your account email is verified. You can continue using all features.
         </p>
         <Button asChild size="lg">
-          <Link href="/">Go to Home</Link>
+          <Link href={returnTo}>Continue</Link>
         </Button>
       </div>
     );

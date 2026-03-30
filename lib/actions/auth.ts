@@ -362,6 +362,12 @@ export async function verifyEmailOtpAction(
       }),
     ]);
 
+    await unstable_update({
+      user: {
+        emailVerified: true,
+      },
+    });
+
     return {
       success: true,
       message: "Email verified successfully.",
@@ -772,6 +778,7 @@ export async function updateProfileAction(
         email: updatedUser.email,
         role: updatedUser.role,
         image: updatedUser.image,
+        emailVerified: !!updatedUser.emailVerified,
       },
     });
 

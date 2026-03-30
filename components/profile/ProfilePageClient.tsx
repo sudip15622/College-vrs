@@ -136,7 +136,7 @@ const ProfilePageClient = ({ profile }: ProfilePageClientProps) => {
         <div className="flex gap-5 items-center justify-end">
           {!profile.emailVerified && (
             <Button asChild variant="outline">
-              <Link href="/verify-email">
+              <Link href="/verify-email?returnTo=%2Fprofile">
                 <RiVerifiedBadgeFill className="size-4 text-primary/80" />
                 Verify Email
               </Link>

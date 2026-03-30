@@ -1,4 +1,5 @@
 "use server";
+import { auth } from "@/auth";
 import prisma from "@/prisma";
 import axios from "axios";
 
@@ -10,6 +11,22 @@ const websiteUrl = process.env.KHALTI_WEBSITE_URL!;
 
 export async function initiateKhaltiPayment(bookingId: string) {
   try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return {
+        success: false,
+        message: "You must be logged in to make a payment",
+      };
+    }
+
+    if (!session.user.emailVerified) {
+      return {
+        success: false,
+        message: "Please verify your email before making payments",
+      };
+    }
+
     const booking = await prisma.booking.findUnique({
       where: { id: bookingId },
       include: {
@@ -29,6 +46,13 @@ export async function initiateKhaltiPayment(bookingId: string) {
 
     if (!booking) {
       throw new Error("Booking not found");
+    }
+
+    if (booking.userId !== session.user.id) {
+      return {
+        success: false,
+        message: "You can only pay for your own booking",
+      };
     }
 
     const amountInPaisa = booking.totalPrice * 100;

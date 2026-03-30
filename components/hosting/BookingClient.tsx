@@ -134,7 +134,7 @@ const BookingClient = ({ booking }: BookingClientProps) => {
         router.refresh();
       } else {
         toast.error(result.error);
-        throw new Error(result.error || "Failed to confirm booking");
+        // throw new Error(result.error || "Failed to confirm booking");
       }
     } catch (error) {
       console.error("Error:", error);
@@ -154,7 +154,7 @@ const BookingClient = ({ booking }: BookingClientProps) => {
         router.refresh();
       } else {
         toast.error(result.error);
-        throw new Error(result.error || "Failed to mark booking as active");
+        // throw new Error(result.error || "Failed to mark booking as active");
       }
     } catch (error) {
       console.error("Error:", error);
@@ -174,7 +174,7 @@ const BookingClient = ({ booking }: BookingClientProps) => {
         router.refresh();
       } else {
         toast.error(result.error);
-        throw new Error(result.error || "Failed to mark booking as completed");
+        // throw new Error(result.error || "Failed to mark booking as completed");
       }
     } catch (error) {
       console.error("Error:", error);
@@ -194,7 +194,7 @@ const BookingClient = ({ booking }: BookingClientProps) => {
         router.refresh();
       } else {
         toast.error(result.error);
-        throw new Error(result.error || "Failed to cancel booking");
+        // throw new Error(result.error || "Failed to cancel booking");
       }
     } catch (error) {
       console.error("Error:", error);
