@@ -15,6 +15,7 @@ export async function main() {
   // Clear existing data before seeding
   console.log("Clearing existing data...");
   
+  await prisma.review.deleteMany({});
   await prisma.booking.deleteMany({});
   await prisma.session.deleteMany({});
   await prisma.account.deleteMany({});
@@ -25,46 +26,36 @@ export async function main() {
   console.log("Database cleared successfully!");
   console.log("Starting to seed data...");
 
-  // Create Admin user (owns all vehicles)
+  // Create Admin user
   const adminSalt = generateSalt();
   const admin = await prisma.user.create({
     data: {
-      name: "Admin",
-      email: "admin@vrs.com",
+      name: "Sudeep Lamichhane",
+      email: "sudeeplamichhane18@gmail.com",
       salt: adminSalt,
-      password: customHash("Admin@123", adminSalt),
+      password: customHash("Admin@15622", adminSalt),
       role: "Admin",
+      emailVerified: new Date("2025-12-01"),
     },
   });
 
   console.log("Created admin:", admin.email);
 
-  // Create regular users
-  const aliceSalt = generateSalt();
-  const ayushSalt = generateSalt();
+  // Create one regular user
+  const userSalt = generateSalt();
   
-  const users = await Promise.all([
-    prisma.user.create({
-      data: {
-        name: "Alice Don",
-        email: "alice@gmail.com",
-        salt: aliceSalt,
-        password: customHash("Alice@15622", aliceSalt),
-        role: "User",
-      },
-    }),
-    prisma.user.create({
-      data: {
-        name: "Ayush Pandey",
-        email: "ayush@gmail.com",
-        salt: ayushSalt,
-        password: customHash("Ayush@15622", ayushSalt),
-        role: "User",
-      },
-    }),
-  ]);
+  const user = await prisma.user.create({
+    data: {
+      name: "Test User",
+      email: "hellomf15622@gmail.com",
+      salt: userSalt,
+      password: customHash("User@15622", userSalt),
+      role: "User",
+      emailVerified: new Date("2025-12-15"),
+    },
+  });
 
-  console.log(`Created ${users.length} regular users`);
+  console.log("Created user:", user.email);
 
   // Create vehicle listings (all owned by admin/platform)
   const listings = await Promise.all([
@@ -218,6 +209,102 @@ export async function main() {
   ]);
 
   console.log(`Created ${listings.length} vehicle listings`);
+
+  // Create 6 completed bookings for the first vehicle (KTM Duke 390)
+  const targetVehicle = listings[0]; // KTM Duke 390
+  const bookings = [];
+
+  const bookingDates = [
+    { start: new Date(2026, 0, 5), end: new Date(2026, 0, 10) }, // January 2026
+    { start: new Date(2026, 0, 18), end: new Date(2026, 0, 23) }, // January 2026
+    { start: new Date(2026, 1, 5), end: new Date(2026, 1, 10) }, // February 2026
+    { start: new Date(2026, 1, 18), end: new Date(2026, 1, 23) }, // February 2026
+    { start: new Date(2026, 2, 10), end: new Date(2026, 2, 15) }, // March 2026
+    { start: new Date(2026, 2, 25), end: new Date(2026, 2, 30) }, // March 2026
+  ];
+
+  for (let i = 0; i < 6; i++) {
+    const booking = await prisma.booking.create({
+      data: {
+        userId: user.id,
+        listingId: targetVehicle.id,
+        startDate: bookingDates[i].start,
+        endDate: bookingDates[i].end,
+        pricePerDay: targetVehicle.pricePerDay,
+        totalDays: 5,
+        totalPrice: targetVehicle.pricePerDay * 5,
+        renterContactNumber: "9841234567",
+        renterNotes: "Looking forward to the ride!",
+        status: "Completed",
+        isPaid: true,
+        paidAt: bookingDates[i].start,
+        bookedAt: new Date(bookingDates[i].start.getTime() - 7 * 24 * 60 * 60 * 1000), // 7 days before
+        completedAt: bookingDates[i].end,
+      },
+    });
+    bookings.push(booking);
+  }
+
+  console.log(`Created ${bookings.length} completed bookings`);
+
+  // Create 6 reviews with varying ratings, comment lengths, and dates
+  // Algorithm showcase: different ratings (1-5), varied comment lengths, different dates
+  const reviewData = [
+    {
+      rating: 5,
+      comment: "Excellent bike! Runs smoothly and very comfortable to ride. Highly recommended!",
+      daysAfterCompletion: 2,
+    },
+    {
+      rating: 4,
+      comment:
+        "Great experience overall. The bike was well maintained and the rental process was smooth. Would rent again. Very professional service.",
+      daysAfterCompletion: 3,
+    },
+    {
+      rating: 5,
+      comment: "Perfect bike.",
+      daysAfterCompletion: 1,
+    },
+    {
+      rating: 2,
+      comment:
+        "The bike had some issues during my rental. The throttle response was inconsistent and the bike felt a bit sluggish. Customer service was helpful in resolving it though.",
+      daysAfterCompletion: 6,
+    },
+    {
+      rating: 5,
+      comment:
+        "Absolutely love this KTM! The engine is powerful, handling is precise, acceleration is smooth, and it was delivered and picked up on time. Best rental experience ever! Would definitely rent again.",
+      daysAfterCompletion: 2,
+    },
+    {
+      rating: 4,
+      comment: "Good bike.",
+      daysAfterCompletion: 4,
+    },
+  ];
+
+  for (let i = 0; i < 6; i++) {
+    const reviewDate = new Date(
+      bookings[i].completedAt!.getTime() + reviewData[i].daysAfterCompletion * 24 * 60 * 60 * 1000,
+    );
+
+    await prisma.review.create({
+      data: {
+        userId: user.id,
+        listingId: targetVehicle.id,
+        bookingId: bookings[i].id,
+        rating: reviewData[i].rating,
+        comment: reviewData[i].comment,
+        commentLength: reviewData[i].comment.length,
+        hasPhotos: i % 2 === 0, // Alternate photos
+        createdAt: reviewDate,
+      },
+    });
+  }
+
+  console.log("Created 6 reviews with varying ratings and comment lengths");
   console.log("Seed data created successfully!");
 }
 

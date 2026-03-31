@@ -126,7 +126,7 @@ const ListingSettingsClient = ({
         <CardHeader>
           <CardTitle>Delete Vehicle</CardTitle>
           <CardDescription>
-            Permanently delete this vehicle listing if it has no pending, active, or completed bookings.
+            Permanently delete this vehicle listing if it has no pending, confirmed or active bookings.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -138,19 +138,19 @@ const ListingSettingsClient = ({
                 <p className="font-medium">{pendingBookings}</p>
               </div>
               <div className="rounded-md border p-3">
-                <p className="text-muted-foreground">Active</p>
-                <p className="font-medium">{activeBookings}</p>
+                <p className="text-muted-foreground">Confirmed</p>
+                <p className="font-medium">{confirmedBookings}</p>
               </div>
               <div className="rounded-md border p-3">
-                <p className="text-muted-foreground">Completed</p>
-                <p className="font-medium">{confirmedBookings}</p>
+                <p className="text-muted-foreground">Active</p>
+                <p className="font-medium">{activeBookings}</p>
               </div>
             </div>
           </div>
 
           {blockingBookingsCount > 0 ? (
             <p className="text-sm text-destructive">
-              Deletion blocked: this vehicle has {blockingBookingsCount} pending, active, or completed booking(s).
+              Deletion blocked: this vehicle has {blockingBookingsCount} pending, confirmed or active booking(s).
             </p>
           ) : (
             <p className="text-sm text-muted-foreground">

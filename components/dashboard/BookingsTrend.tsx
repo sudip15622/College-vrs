@@ -39,8 +39,7 @@ const BookingsTrend = ({ initialData }: BookingsTrendProps) => {
     () => initialData.slice(-chartConfig.days),
     [chartConfig.days, initialData],
   );
-  const xAxisInterval =
-    selectedRange === "3m" ? 9 : selectedRange === "30d" ? 4 : 0;
+  const xAxisInterval = selectedRange === "3m" ? 9 : selectedRange === "30d" ? 4 : 0;
 
   const totalBookings = data.reduce((sum, item) => sum + item.bookings, 0);
   const peakBookings = data.reduce(

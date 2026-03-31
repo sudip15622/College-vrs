@@ -23,7 +23,7 @@ export default async function HostingLayout({
   }
 
   // Redirect if not admin
-  if (session.user.role !== "User") {
+  if (session.user.role !== "Admin") {
     redirect("/");
   }
 

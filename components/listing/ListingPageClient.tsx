@@ -64,42 +64,6 @@ interface ListingPageProps {
 }
 
 const ListingPageClient = ({ details, vehicleId }: ListingPageProps) => {
-  const defaultReviews = [
-    {
-      id: "1",
-      rating: 5,
-      reviewedAt: Date.now() - 7 * 24 * 60 * 60 * 1000, // 7 days ago
-      comment:
-        "Excellent bike! Very smooth ride and the owner was super helpful. Highly recommend for anyone looking for a reliable rental in Kathmandu.",
-      user: {
-        id: "user1",
-        name: "Sujeet Acharya",
-      },
-    },
-    {
-      id: "2",
-      rating: 4.5,
-      reviewedAt: Date.now() - 14 * 24 * 60 * 60 * 1000, // 14 days ago
-      comment:
-        "Great experience overall. The bike was in perfect condition and well-maintained. Only minor issue was the pickup time was slightly delayed.",
-      user: {
-        id: "user2",
-        name: "Adisan Khatri",
-      },
-    },
-    {
-      id: "3",
-      rating: 3,
-      reviewedAt: Date.now() - 21 * 24 * 60 * 60 * 1000, // 21 days ago
-      comment:
-        "Perfect for my weekend trip to Pokhara! Good fuel efficiency and comfortable ride. Would definitely rent again.",
-      user: {
-        id: "user3",
-        name: "Aadesh Pandey",
-      },
-    },
-  ];
-
   return (
     <div className="w-full max-w-6xl mx-auto space-y-8">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
@@ -253,12 +217,12 @@ const ListingPageClient = ({ details, vehicleId }: ListingPageProps) => {
             <div className="flex flex-col gap-0.5">
               <div className="flex items-center gap-x-2">
                 <span className="font-bold text-foreground text-xl">
-                  {details.rating ? details.rating : "New"}
+                  {details.averageRating > 0 ? details.averageRating : "New"}
                 </span>
                 <FaStar className="text-primary text-xl" />
               </div>
               <span className="text-muted-foreground">
-                ({details.reviews?.length || 10} reviews)
+                ({details.reviewCount || 0} reviews)
               </span>
             </div>
 
@@ -267,14 +231,14 @@ const ListingPageClient = ({ details, vehicleId }: ListingPageProps) => {
                 REVIEWS
               </h3>
               <div className="space-y-6 w-full">
-                {defaultReviews.map((review, index) => {
+                {(details.reviews || []).map((review: any, index: number) => {
                   return (
                     <React.Fragment key={review.id}>
                       <div className="flex items-start gap-4 w-full">
                         <div className="w-10 h-10 min-w-10 max-w-10 relative overflow-hidden rounded-full bg-border">
                           <Image
                             className="object-cover w-full h-full"
-                            src={"/default_user.png"}
+                            src={review.user?.image || "/default_user.png"}
                             alt="reviewer-avatar"
                             fill
                             sizes="40px"
@@ -286,14 +250,14 @@ const ListingPageClient = ({ details, vehicleId }: ListingPageProps) => {
                           <StarRating rating={review.rating} />
                           <div className="flex items-end">
                             <span className="text-sm font-medium">
-                              {review.user.name}
+                              {review.user?.name || "Anonymous"}
                             </span>
                             <span className="flex items-center justify-center text-lg">
                               <BsDot />
                             </span>
                             <span className="text-muted-foreground text-sm">
                               {format(
-                                new Date(review.reviewedAt),
+                                new Date(review.createdAt),
                                 "MMM dd yyyy",
                               )}
                             </span>
@@ -305,12 +269,15 @@ const ListingPageClient = ({ details, vehicleId }: ListingPageProps) => {
                           )}
                         </div>
                       </div>
-                      {index < defaultReviews.length - 1 && (
+                      {index < (details.reviews || []).length - 1 && (
                         <div className="border-t border-border" />
                       )}
                     </React.Fragment>
                   );
                 })}
+                {(!details.reviews || details.reviews.length === 0) && (
+                  <p className="text-muted-foreground text-sm">No reviews yet for this vehicle.</p>
+                )}
               </div>
             </div>
           </div>

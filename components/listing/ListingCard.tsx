@@ -21,6 +21,8 @@ interface Listing {
   pricePerDay: number;
   image: ListingImage;
   isAvailable: boolean;
+  averageRating?: number;
+  reviewCount?: number;
   createdAt?: number;
   updatedAt?: number;
   bookings?: any[];
@@ -67,15 +69,31 @@ const ListingCard = ({
         </div>
         <div className="flex flex-col gap-y-1 px-2">
           <div className="text-md truncate">{listing.name}</div>
+          <div className="text-sm text-muted-foreground flex items-center gap-x-1 justify-between">
+            {/* {`NPR ${listing.pricePerDay.toLocaleString()} per day`} */}
+            <div className="flex items-center gap-x-1">
+              <span className="">
+                Rs. {listing.pricePerDay.toLocaleString()}
+              </span>
+              <span>per day</span>
+            </div>
+            <BsDot />
+            <div className="text-sm text-muted-foreground flex items-center gap-x-1">
+              <FaStar className="size-3" />
+              <span className="font-medium">
+                {listing.averageRating && listing.averageRating > 0
+                  ? listing.averageRating.toFixed(1)
+                  : "New"}
+              </span>
+            </div>
+          </div>
+
           {/* {showLocation && (
             <div className="text-sm text-muted-foreground w-full flex gap-x-1 items-center">
               <FaMapMarkerAlt className="text-xs" />
               <span className="w-full truncate">{listing.location}</span>
             </div>
           )} */}
-          <div className="text-sm text-muted-foreground">
-            {`NPR ${listing.pricePerDay.toLocaleString()} per day`}
-          </div>
         </div>
       </Link>
     </div>

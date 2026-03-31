@@ -4,6 +4,14 @@ import { CreateBookingData } from "../schemas/booking";
 import prisma from "@/prisma";
 import { initiateKhaltiPayment } from "./payment";
 import { refundKhaltiPaymentByPidx } from "./payment";
+import {
+  sendAdminBookingCancelledEmail,
+  sendAdminBookingCreatedEmail,
+  sendAdminBookingStatusChangedEmail,
+  sendBookingCancelledEmail,
+  sendBookingCreatedEmail,
+  sendBookingStatusChangedByAdminEmail,
+} from "./email";
 
 export async function InitiateBooking(
   listingId: string,
@@ -161,6 +169,35 @@ export async function InitiateBooking(
       };
     }
 
+    try {
+      await sendBookingCreatedEmail({
+        to: session.user.email,
+        customerName: session.user.name,
+        customerEmail: session.user.email,
+        bookingId: booking.id,
+        vehicleName: listing.name,
+        startDate: booking.startDate,
+        endDate: booking.endDate,
+        totalDays: booking.totalDays,
+        totalPrice: booking.totalPrice,
+        paymentMethod: booking.paymentMethod,
+      });
+
+      await sendAdminBookingCreatedEmail({
+        customerName: session.user.name,
+        customerEmail: session.user.email,
+        bookingId: booking.id,
+        vehicleName: listing.name,
+        startDate: booking.startDate,
+        endDate: booking.endDate,
+        totalDays: booking.totalDays,
+        totalPrice: booking.totalPrice,
+        paymentMethod: booking.paymentMethod,
+      });
+    } catch (emailError) {
+      console.error("Failed to send booking created email:", emailError);
+    }
+
     return {
       success: true,
       message: "Booking created successfully",
@@ -255,6 +292,22 @@ export async function getBookingById(bookingId: string) {
             email: true,
           },
         },
+        review: {
+          select: {
+            id: true,
+            rating: true,
+            comment: true,
+            hasPhotos: true,
+            createdAt: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -303,11 +356,11 @@ export async function completeBooking(bookingId: string) {
       where: { id: bookingId },
       include: {
         listing: {
-            select: {
-                id: true,
-                name: true,
-                isAvailable: true,
-            }
+          select: {
+            id: true,
+            name: true,
+            isAvailable: true,
+          },
         },
       },
     });
@@ -458,6 +511,13 @@ export async function cancelBooking(bookingId: string, reason?: string) {
 
     const booking = await prisma.booking.findUnique({
       where: { id: bookingId },
+      include: {
+        listing: {
+          select: {
+            name: true,
+          },
+        },
+      },
     });
 
     if (!booking) {
@@ -522,7 +582,8 @@ export async function cancelBooking(bookingId: string, reason?: string) {
 
         return {
           success: false,
-          error: refundResult.message || "Refund failed. Booking not cancelled.",
+          error:
+            refundResult.message || "Refund failed. Booking not cancelled.",
         };
       }
 
@@ -542,6 +603,41 @@ export async function cancelBooking(bookingId: string, reason?: string) {
         refundAmount,
       },
     });
+
+    try {
+      await sendBookingCancelledEmail({
+        to: session.user.email,
+        customerName: session.user.name,
+        customerEmail: session.user.email,
+        bookingId: booking.id,
+        vehicleName: booking.listing.name,
+        startDate: booking.startDate,
+        endDate: booking.endDate,
+        totalDays: booking.totalDays,
+        totalPrice: booking.totalPrice,
+        cancellationReason: reason,
+        isPaid: booking.isPaid,
+        refundStatus,
+        refundAmount,
+      });
+
+      await sendAdminBookingCancelledEmail({
+        customerName: session.user.name,
+        customerEmail: session.user.email,
+        bookingId: booking.id,
+        vehicleName: booking.listing.name,
+        startDate: booking.startDate,
+        endDate: booking.endDate,
+        totalDays: booking.totalDays,
+        totalPrice: booking.totalPrice,
+        cancellationReason: reason,
+        isPaid: booking.isPaid,
+        refundStatus,
+        refundAmount,
+      });
+    } catch (emailError) {
+      console.error("Failed to send booking cancelled email:", emailError);
+    }
 
     return {
       success: true,
@@ -629,7 +725,9 @@ export async function getDashboardStatsData(): Promise<DashboardStatsData> {
   };
 }
 
-export async function getRevenueTrendData(days = 90): Promise<RevenueTrendDataPoint[]> {
+export async function getRevenueTrendData(
+  days = 90,
+): Promise<RevenueTrendDataPoint[]> {
   const safeDays = Math.max(1, days);
 
   const today = new Date();
@@ -761,7 +859,9 @@ export async function getRevenueByVehicleData(
     },
   });
 
-  const listingNameById = new Map(listings.map((listing) => [listing.id, listing.name]));
+  const listingNameById = new Map(
+    listings.map((listing) => [listing.id, listing.name]),
+  );
 
   return revenueByListing.map((entry) => ({
     vehicle: listingNameById.get(entry.listingId) || "Unknown Vehicle",
@@ -769,7 +869,9 @@ export async function getRevenueByVehicleData(
   }));
 }
 
-export async function getBookingTrendData(days = 30): Promise<BookingTrendDataPoint[]> {
+export async function getBookingTrendData(
+  days = 30,
+): Promise<BookingTrendDataPoint[]> {
   const safeDays = Math.max(1, days);
 
   const today = new Date();
@@ -807,18 +909,20 @@ export async function getBookingTrendData(days = 30): Promise<BookingTrendDataPo
     bookingsByDate.set(dateKey, currentCount + 1);
   }
 
-  return Array.from(bookingsByDate.entries()).map(([dateKey, bookingsCount]) => {
-    const [year, month, day] = dateKey.split("-").map(Number);
-    const date = new Date(year, month - 1, day);
+  return Array.from(bookingsByDate.entries()).map(
+    ([dateKey, bookingsCount]) => {
+      const [year, month, day] = dateKey.split("-").map(Number);
+      const date = new Date(year, month - 1, day);
 
-    return {
-      date: date.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      }),
-      bookings: bookingsCount,
-    };
-  });
+      return {
+        date: date.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        }),
+        bookings: bookingsCount,
+      };
+    },
+  );
 }
 
 export async function getBookingStatusDistributionData(
@@ -918,7 +1022,9 @@ export async function getTopVehiclesByBookingsData(
     },
   });
 
-  const listingNameById = new Map(listings.map((listing) => [listing.id, listing.name]));
+  const listingNameById = new Map(
+    listings.map((listing) => [listing.id, listing.name]),
+  );
 
   return bookingsByListing.map((entry) => ({
     vehicle: listingNameById.get(entry.listingId) || "Unknown Vehicle",
@@ -981,6 +1087,13 @@ export async function confirmBooking(bookingId: string) {
       };
     }
 
+    if (session?.user?.role !== "Admin") {
+      return {
+        success: false,
+        error: "You must be admin to perform this action.",
+      };
+    }
+
     const booking = await prisma.booking.findUnique({
       where: { id: bookingId },
     });
@@ -1001,12 +1114,53 @@ export async function confirmBooking(bookingId: string) {
     }
 
     // Update booking status to Confirmed
-    await prisma.booking.update({
+    const updatedBooking = await prisma.booking.update({
       where: { id: bookingId },
       data: {
         status: "Confirmed",
       },
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+        listing: {
+          select: {
+            name: true,
+          },
+        },
+      },
     });
+
+    try {
+      await sendBookingStatusChangedByAdminEmail({
+        to: updatedBooking.user.email,
+        customerName: updatedBooking.user.name,
+        customerEmail: updatedBooking.user.email,
+        bookingId: updatedBooking.id,
+        vehicleName: updatedBooking.listing.name,
+        startDate: updatedBooking.startDate,
+        endDate: updatedBooking.endDate,
+        totalDays: updatedBooking.totalDays,
+        totalPrice: updatedBooking.totalPrice,
+        newStatus: updatedBooking.status,
+      });
+      await sendAdminBookingStatusChangedEmail({
+        customerName: updatedBooking.user.name,
+        customerEmail: updatedBooking.user.email,
+        bookingId: updatedBooking.id,
+        vehicleName: updatedBooking.listing.name,
+        startDate: updatedBooking.startDate,
+        endDate: updatedBooking.endDate,
+        totalDays: updatedBooking.totalDays,
+        totalPrice: updatedBooking.totalPrice,
+        newStatus: updatedBooking.status,
+      });
+    } catch (error) {
+      console.error("Failed to send booking confirmed email:", error);
+    }
 
     return {
       success: true,
@@ -1032,6 +1186,13 @@ export async function markBookingAsActive(bookingId: string) {
       };
     }
 
+    if (session?.user?.role !== "Admin") {
+      return {
+        success: false,
+        error: "You must be admin to perform this action.",
+      };
+    }
+
     const booking = await prisma.booking.findUnique({
       where: { id: bookingId },
     });
@@ -1052,12 +1213,53 @@ export async function markBookingAsActive(bookingId: string) {
     }
 
     // Update booking status to Active
-    await prisma.booking.update({
+    const updatedBooking = await prisma.booking.update({
       where: { id: bookingId },
       data: {
         status: "Active",
       },
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+        listing: {
+          select: {
+            name: true,
+          },
+        },
+      },
     });
+
+    try {
+      await sendBookingStatusChangedByAdminEmail({
+        to: updatedBooking.user.email,
+        customerName: updatedBooking.user.name,
+        customerEmail: updatedBooking.user.email,
+        bookingId: updatedBooking.id,
+        vehicleName: updatedBooking.listing.name,
+        startDate: updatedBooking.startDate,
+        endDate: updatedBooking.endDate,
+        totalDays: updatedBooking.totalDays,
+        totalPrice: updatedBooking.totalPrice,
+        newStatus: updatedBooking.status,
+      });
+      await sendAdminBookingStatusChangedEmail({
+        customerName: updatedBooking.user.name,
+        customerEmail: updatedBooking.user.email,
+        bookingId: updatedBooking.id,
+        vehicleName: updatedBooking.listing.name,
+        startDate: updatedBooking.startDate,
+        endDate: updatedBooking.endDate,
+        totalDays: updatedBooking.totalDays,
+        totalPrice: updatedBooking.totalPrice,
+        newStatus: updatedBooking.status,
+      });
+    } catch (error) {
+      console.error("Failed to send booking activated email:", error);
+    }
 
     return {
       success: true,
@@ -1083,6 +1285,13 @@ export async function markBookingAsCompleted(bookingId: string) {
       };
     }
 
+    if (session?.user?.role !== "Admin") {
+      return {
+        success: false,
+        error: "You must be admin to perform this action.",
+      };
+    }
+
     const booking = await prisma.booking.findUnique({
       where: { id: bookingId },
     });
@@ -1103,13 +1312,54 @@ export async function markBookingAsCompleted(bookingId: string) {
     }
 
     // Update booking status to Completed
-    await prisma.booking.update({
+    const updatedBooking = await prisma.booking.update({
       where: { id: bookingId },
       data: {
         status: "Completed",
         completedAt: new Date(),
       },
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+        listing: {
+          select: {
+            name: true,
+          },
+        },
+      },
     });
+
+    try {
+      await sendBookingStatusChangedByAdminEmail({
+        to: updatedBooking.user.email,
+        customerName: updatedBooking.user.name,
+        customerEmail: updatedBooking.user.email,
+        bookingId: updatedBooking.id,
+        vehicleName: updatedBooking.listing.name,
+        startDate: updatedBooking.startDate,
+        endDate: updatedBooking.endDate,
+        totalDays: updatedBooking.totalDays,
+        totalPrice: updatedBooking.totalPrice,
+        newStatus: updatedBooking.status,
+      });
+      await sendAdminBookingStatusChangedEmail({
+        customerName: updatedBooking.user.name,
+        customerEmail: updatedBooking.user.email,
+        bookingId: updatedBooking.id,
+        vehicleName: updatedBooking.listing.name,
+        startDate: updatedBooking.startDate,
+        endDate: updatedBooking.endDate,
+        totalDays: updatedBooking.totalDays,
+        totalPrice: updatedBooking.totalPrice,
+        newStatus: updatedBooking.status,
+      });
+    } catch (error) {
+      console.error("Failed to send booking completed email:", error);
+    }
 
     return {
       success: true,
@@ -1132,6 +1382,13 @@ export async function adminCancelBooking(bookingId: string, reason?: string) {
       return {
         success: false,
         error: "You must be logged in",
+      };
+    }
+
+    if (session?.user?.role !== "Admin") {
+      return {
+        success: false,
+        error: "You must be admin to perform this action.",
       };
     }
 
@@ -1158,7 +1415,8 @@ export async function adminCancelBooking(bookingId: string, reason?: string) {
     if (booking.status === "Active") {
       return {
         success: false,
-        error: "Cannot cancel an active booking. The rental is already in progress.",
+        error:
+          "Cannot cancel an active booking. The rental is already in progress.",
       };
     }
 
@@ -1194,7 +1452,8 @@ export async function adminCancelBooking(bookingId: string, reason?: string) {
 
         return {
           success: false,
-          error: refundResult.message || "Refund failed. Booking not cancelled.",
+          error:
+            refundResult.message || "Refund failed. Booking not cancelled.",
         };
       }
 
@@ -1203,7 +1462,7 @@ export async function adminCancelBooking(bookingId: string, reason?: string) {
     }
 
     // Update booking status
-    await prisma.booking.update({
+    const updatedBooking = await prisma.booking.update({
       where: { id: bookingId },
       data: {
         status: "Cancelled",
@@ -1213,7 +1472,55 @@ export async function adminCancelBooking(bookingId: string, reason?: string) {
         refundStatus,
         refundAmount,
       },
+      include: {
+        listing: {
+          select: {
+            name: true,
+          }
+        },
+        user: {
+          select: {
+            name: true,
+            email: true,
+          }
+        }
+      }
     });
+
+    try {
+      await sendBookingCancelledEmail({
+        to: updatedBooking.user.email,
+        customerName: updatedBooking.user.name,
+        customerEmail: updatedBooking.user.email,
+        bookingId: updatedBooking.id,
+        vehicleName: updatedBooking.listing.name,
+        startDate: updatedBooking.startDate,
+        endDate: updatedBooking.endDate,
+        totalDays: updatedBooking.totalDays,
+        totalPrice: updatedBooking.totalPrice,
+        cancellationReason: reason,
+        isPaid: updatedBooking.isPaid,
+        refundStatus,
+        refundAmount,
+      });
+
+      await sendAdminBookingCancelledEmail({
+        customerName: updatedBooking.user.name,
+        customerEmail: updatedBooking.user.email,
+        bookingId: updatedBooking.id,
+        vehicleName: updatedBooking.listing.name,
+        startDate: updatedBooking.startDate,
+        endDate: updatedBooking.endDate,
+        totalDays: updatedBooking.totalDays,
+        totalPrice: updatedBooking.totalPrice,
+        cancellationReason: reason,
+        isPaid: updatedBooking.isPaid,
+        refundStatus,
+        refundAmount,
+      });
+    } catch (emailError) {
+      console.error("Failed to send booking cancelled email:", emailError);
+    }
 
     return {
       success: true,

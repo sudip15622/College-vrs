@@ -22,6 +22,7 @@ import { IoMdArrowRoundBack } from "react-icons/io";
 import { MdCheckCircle, MdDirectionsBike } from "react-icons/md";
 import { Button } from "@/components/ui/button";
 import Confirmation from "@/components/confirmation/Confirmation";
+import ReviewModal from "@/components/trips/ReviewModal";
 
 interface Booking {
   id: string;
@@ -53,6 +54,18 @@ interface Booking {
     condition: string;
   };
   bookedAt: Date;
+  review: {
+    id: string;
+    rating: number;
+    comment: string | null;
+    hasPhotos: boolean;
+    createdAt: Date;
+    user: {
+      id: string;
+      name: string;
+      image: string | null;
+    };
+  } | null;
 }
 
 interface TripDetailsClientProps {
@@ -181,6 +194,7 @@ const TripDetailsClient = ({ booking }: TripDetailsClientProps) => {
 
   const canCancel = booking.status === "Pending" || booking.status === "Confirmed";
   const canRetryPayment = booking.status === "Pending" && !booking.isPaid;
+  const canReview = booking.status === "Completed" && !booking.review;
 
   return (
     <div className="max-w-5xl mx-auto px-4">
@@ -445,7 +459,7 @@ const TripDetailsClient = ({ booking }: TripDetailsClientProps) => {
             </div>
 
             {/* Action Buttons */}
-            <div className="mt-6 space-y-3">
+            <div className="mt-6 space-y-3 relative">
               {canRetryPayment && (
                 <>
                   {isExpired ? (
@@ -497,6 +511,37 @@ const TripDetailsClient = ({ booking }: TripDetailsClientProps) => {
                   <p className="text-xs text-blue-800 dark:text-blue-200">
                     The owner will contact you before pickup to confirm details.
                   </p>
+                </div>
+              )}
+              {canReview && (
+                <ReviewModal 
+                  bookingId={booking.id}
+                  listingId={booking.listing.id}
+                  listingName={booking.listing.name}
+                  onReviewSubmitted={() => router.refresh()}
+                />
+              )}
+              {booking.review && (
+                <div className="bg-card border border-border rounded-lg p-4">
+                  <h3 className="font-semibold text-foreground mb-3">Your Review</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="flex">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <span key={star} className={star <= (booking.review?.rating || 0) ? "text-yellow-400" : "text-gray-300"}>
+                            ★
+                          </span>
+                        ))}
+                      </div>
+                      <span className="text-sm font-medium text-foreground">{booking.review.rating}/5</span>
+                    </div>
+                    {booking.review.comment && (
+                      <p className="text-sm text-muted-foreground">{booking.review.comment.slice(0, 200)}...</p>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      {format(new Date(booking.review.createdAt), "MMM dd, yyyy")}
+                    </p>
+                  </div>
                 </div>
               )}
             </div>

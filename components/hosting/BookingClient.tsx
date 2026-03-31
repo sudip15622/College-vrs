@@ -269,8 +269,12 @@ const BookingClient = ({ booking }: BookingClientProps) => {
 
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
-            <h1 className="text-2xl md:text-3xl font-semibold">Booking Details</h1>
-            <p className="text-sm text-muted-foreground mt-1">ID: {booking.id}</p>
+            <h1 className="text-2xl md:text-3xl font-semibold">
+              Booking Details
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              ID: {booking.id}
+            </p>
           </div>
           <div
             className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 ${statusConfig.bgClass}`}
@@ -301,7 +305,9 @@ const BookingClient = ({ booking }: BookingClientProps) => {
               </div>
               <div className="space-y-1">
                 <p className="font-medium text-base">{booking.user.name}</p>
-                <p className="text-sm text-muted-foreground">{booking.user.email}</p>
+                <p className="text-sm text-muted-foreground">
+                  {booking.user.email}
+                </p>
                 <p className="text-sm flex items-center gap-2">
                   <Phone className="h-4 w-4 text-muted-foreground" />
                   +977 {booking.renterContactNumber}
@@ -330,8 +336,12 @@ const BookingClient = ({ booking }: BookingClientProps) => {
                 />
               </div>
               <div className="space-y-2">
-                <h3 className="text-lg font-semibold">{booking.listing.name}</h3>
-                <p className="text-sm text-muted-foreground">{booking.listing.type}</p>
+                <h3 className="text-lg font-semibold">
+                  {booking.listing.name}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {booking.listing.type}
+                </p>
                 <div className="flex flex-wrap gap-2 pt-1">
                   <span className="rounded-full bg-secondary px-3 py-1 text-xs text-secondary-foreground">
                     {booking.listing.fuelType}
@@ -360,22 +370,33 @@ const BookingClient = ({ booking }: BookingClientProps) => {
             </h2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="rounded-lg border border-border p-3">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">Pickup</p>
-                <p className="font-medium">{format(new Date(booking.startDate), "EEEE")}</p>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">
+                  Pickup
+                </p>
+                <p className="font-medium">
+                  {format(new Date(booking.startDate), "EEEE")}
+                </p>
                 <p className="text-sm text-muted-foreground">
                   {format(new Date(booking.startDate), "MMM dd, yyyy")}
                 </p>
               </div>
               <div className="rounded-lg border border-border p-3">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">Dropoff</p>
-                <p className="font-medium">{format(new Date(booking.endDate), "EEEE")}</p>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">
+                  Dropoff
+                </p>
+                <p className="font-medium">
+                  {format(new Date(booking.endDate), "EEEE")}
+                </p>
                 <p className="text-sm text-muted-foreground">
                   {format(new Date(booking.endDate), "MMM dd, yyyy")}
                 </p>
               </div>
             </div>
             <p className="mt-4 text-sm text-muted-foreground">
-              Total Duration: <span className="font-medium text-foreground">{booking.totalDays} {booking.totalDays === 1 ? "day" : "days"}</span>
+              Total Duration:{" "}
+              <span className="font-medium text-foreground">
+                {booking.totalDays} {booking.totalDays === 1 ? "day" : "days"}
+              </span>
             </p>
           </section>
 
@@ -388,7 +409,10 @@ const BookingClient = ({ booking }: BookingClientProps) => {
                 <p>
                   <span className="text-muted-foreground">Cancelled On: </span>
                   {booking.cancelledAt
-                    ? format(new Date(booking.cancelledAt), "MMM dd, yyyy 'at' hh:mm a")
+                    ? format(
+                        new Date(booking.cancelledAt),
+                        "MMM dd, yyyy 'at' hh:mm a",
+                      )
                     : "-"}
                 </p>
                 {booking.cancellationReason && (
@@ -399,13 +423,17 @@ const BookingClient = ({ booking }: BookingClientProps) => {
                 )}
                 {booking.refundStatus && (
                   <p>
-                    <span className="text-muted-foreground">Refund Status: </span>
+                    <span className="text-muted-foreground">
+                      Refund Status:{" "}
+                    </span>
                     {booking.refundStatus}
                   </p>
                 )}
                 {booking.refundAmount !== null && (
                   <p>
-                    <span className="text-muted-foreground">Refund Amount: </span>
+                    <span className="text-muted-foreground">
+                      Refund Amount:{" "}
+                    </span>
                     ₹{booking.refundAmount.toLocaleString()}
                   </p>
                 )}
@@ -424,7 +452,8 @@ const BookingClient = ({ booking }: BookingClientProps) => {
             <div className="space-y-3 text-sm">
               <div className="flex items-center justify-between">
                 <span>
-                  ₹{booking.pricePerDay.toLocaleString()} × {booking.totalDays} {booking.totalDays === 1 ? "day" : "days"}
+                  ₹{booking.pricePerDay.toLocaleString()} × {booking.totalDays}{" "}
+                  {booking.totalDays === 1 ? "day" : "days"}
                 </span>
                 <span>₹{booking.totalPrice.toLocaleString()}</span>
               </div>
@@ -436,71 +465,105 @@ const BookingClient = ({ booking }: BookingClientProps) => {
 
             <div className="mt-4 border-t border-border pt-4 space-y-1">
               <p className="text-xs text-muted-foreground">Payment Status</p>
-              <p className={`text-sm font-medium ${booking.isPaid ? "text-green-600" : "text-yellow-600"}`}>
+              <p
+                className={`text-sm font-medium ${booking.isPaid ? "text-green-600" : "text-yellow-600"}`}
+              >
                 {booking.isPaid ? "Paid" : "Pending"}
               </p>
               {booking.paymentMethod && (
-                <p className="text-xs text-muted-foreground">Method: {booking.paymentMethod}</p>
+                <p className="text-xs text-muted-foreground">
+                  Method: {booking.paymentMethod}
+                </p>
               )}
               {booking.paidAt && (
                 <p className="text-xs text-muted-foreground">
-                  Paid on {format(new Date(booking.paidAt), "MMM dd, yyyy 'at' hh:mm a")}
+                  Paid on{" "}
+                  {format(
+                    new Date(booking.paidAt),
+                    "MMM dd, yyyy 'at' hh:mm a",
+                  )}
                 </p>
               )}
-              {booking.expiredAt && !booking.isPaid && booking.status === "Pending" && (
-                <div className="mt-2 rounded-md border border-yellow-200 bg-yellow-50 p-2 dark:border-yellow-800 dark:bg-yellow-950/20">
-                  <p className="text-xs text-yellow-700 dark:text-yellow-400 flex items-center gap-1">
-                    <AlertTriangle className="h-3.5 w-3.5" />
-                    Expires {format(new Date(booking.expiredAt), "MMM dd, yyyy 'at' hh:mm a")}
-                  </p>
-                </div>
-              )}
+              {booking.expiredAt &&
+                !booking.isPaid &&
+                booking.status === "Pending" && (
+                  <div className="mt-2 rounded-md border border-yellow-200 bg-yellow-50 p-2 dark:border-yellow-800 dark:bg-yellow-950/20">
+                    <p className="text-xs text-yellow-700 dark:text-yellow-400 flex items-center gap-1">
+                      <AlertTriangle className="h-3.5 w-3.5" />
+                      Expires{" "}
+                      {format(
+                        new Date(booking.expiredAt),
+                        "MMM dd, yyyy 'at' hh:mm a",
+                      )}
+                    </p>
+                  </div>
+                )}
             </div>
 
             <div className="mt-4 border-t border-border pt-4 space-y-1 text-xs text-muted-foreground">
-              <p>Booked: {format(new Date(booking.bookedAt), "MMM dd, yyyy 'at' hh:mm a")}</p>
-              <p>Last Updated: {format(new Date(booking.updatedAt), "MMM dd, yyyy 'at' hh:mm a")}</p>
+              <p>
+                Booked:{" "}
+                {format(
+                  new Date(booking.bookedAt),
+                  "MMM dd, yyyy 'at' hh:mm a",
+                )}
+              </p>
+              <p>
+                Last Updated:{" "}
+                {format(
+                  new Date(booking.updatedAt),
+                  "MMM dd, yyyy 'at' hh:mm a",
+                )}
+              </p>
             </div>
 
             <div className="mt-6 space-y-2">
               {booking.status === "Pending" && (
-                <Button 
-                  className="w-full" 
+                <Button
+                  className="w-full"
                   onClick={() => setActiveAction("confirm")}
                   disabled={isLoading === "confirm"}
                 >
-                  {isLoading === "confirm" ? "Confirming..." : "Confirm Booking"}
+                  {isLoading === "confirm"
+                    ? "Confirming..."
+                    : "Confirm Booking"}
                 </Button>
               )}
               {booking.status === "Confirmed" && (
-                <Button 
-                  className="w-full" 
+                <Button
+                  className="w-full"
                   onClick={() => setActiveAction("active")}
                   disabled={isLoading === "active"}
                 >
                   {isLoading === "active" ? "Updating..." : "Mark as Active"}
                 </Button>
               )}
-              {(booking.status === "Active" || booking.status === "Confirmed") && (
-                <Button 
-                  className="w-full" 
+              {(booking.status === "Active" ||
+                booking.status === "Confirmed") && (
+                <Button
+                  className="w-full"
                   variant="secondary"
                   onClick={() => setActiveAction("complete")}
                   disabled={isLoading === "complete"}
                 >
-                  {isLoading === "complete" ? "Updating..." : "Mark as Completed"}
+                  {isLoading === "complete"
+                    ? "Updating..."
+                    : "Mark as Completed"}
                 </Button>
               )}
-              {booking.status !== "Completed" && booking.status !== "Cancelled" && (
-                <Button
-                  className="w-full"
-                  variant="destructive"
-                  onClick={() => setActiveAction("cancel")}
-                  disabled={isLoading === "cancel"}
-                >
-                  {isLoading === "cancel" ? "Cancelling..." : "Cancel Booking"}
-                </Button>
-              )}
+              {booking.status !== "Completed" &&
+                booking.status !== "Cancelled" && (
+                  <Button
+                    className="w-full"
+                    variant="destructive"
+                    onClick={() => setActiveAction("cancel")}
+                    disabled={isLoading === "cancel"}
+                  >
+                    {isLoading === "cancel"
+                      ? "Cancelling..."
+                      : "Cancel Booking"}
+                  </Button>
+                )}
             </div>
           </section>
         </div>

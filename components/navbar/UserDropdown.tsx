@@ -78,9 +78,9 @@ const UserDropdown = ({ user }: UserDropdownProps) => {
         <DropdownMenuSeparator />
 
         <DropdownMenuItem>
-          <Link href="/trips" className="w-full flex items-center gap-x-2 py-2 font-medium">
+          <Link href={user.role === "Admin" ? "/hosting" : "/trips"} className="w-full flex items-center gap-x-2 py-2 font-medium">
             <MdDirectionsBike className="size-5"/>
-            Trips
+            {user.role === "Admin" ? "Hosting" : "Trips"}
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem>

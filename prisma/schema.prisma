@@ -24,6 +24,7 @@ model User {
   image         String? @default("/default_user.png")
   
   bookings      Booking[]
+  reviews       Review[]
   accounts      Account[]
   sessions      Session[]
 
@@ -126,6 +127,7 @@ model Listing {
 
   // Relations
   bookings Booking[]
+  reviews  Review[]
 
   @@index([type, isAvailable])
   @@index([name])
@@ -171,6 +173,7 @@ model Booking {
 
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  review  Review?
 
   bookedAt  DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -185,6 +188,38 @@ model Booking {
   @@index([listingId, startDate, endDate]) // Check date conflicts
   @@index([status, startDate])
   @@map("bookings")
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  
+  // Foreign Keys
+  userId    String
+  listingId String
+  bookingId String   @unique // One review per booking
+  
+  // Review Data
+  rating    Int      @db.SmallInt // 1-5 stars
+  comment   String?  @db.Text
+  hasPhotos Boolean  @default(false)
+  
+  // Metadata for algorithm
+  commentLength Int  @default(0)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  
+  // Indexes
+  @@index([listingId])
+  @@index([userId])
+  @@index([createdAt])
+  @@index([listingId, createdAt])
+  @@map("reviews")
 }
 
 enum Role {

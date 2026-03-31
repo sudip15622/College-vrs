@@ -3,6 +3,7 @@ import prisma from "@/prisma";
 import { auth } from "@/auth";
 import { CreateListingSchema } from "@/lib/schemas/listing";
 import { revalidatePath } from "next/cache";
+import { calculateListingRating } from "@/lib/actions/review";
 
 interface SearchListingsParams {
   limit?: number;
@@ -115,8 +116,30 @@ export async function searchListings(params: SearchListingsParams) {
     },
   });
 
+  // Calculate ratings for all listings using the custom algorithm
+  const ratingPromises = listings.map((listing) =>
+    calculateListingRating(listing.id).then((result) => ({
+      listingId: listing.id,
+      averageRating: result.averageRating,
+      reviewCount: result.stats.totalReviews,
+    }))
+  );
+
+  const ratings = await Promise.all(ratingPromises);
+  const ratingsMap = new Map(ratings.map((r) => [r.listingId, r]));
+
+  const listingsWithReviewStats = listings.map((listing) => {
+    const stats = ratingsMap.get(listing.id);
+
+    return {
+      ...listing,
+      averageRating: stats?.averageRating ?? 0,
+      reviewCount: stats?.reviewCount ?? 0,
+    };
+  });
+
   return {
-    listings,
+    listings: listingsWithReviewStats,
     pagination: {
       total,
       page,
@@ -173,10 +196,40 @@ export async function getListingById(id: string) {
             startDate: "asc",
           },
         },
+        reviews: {
+          select: {
+            id: true,
+            rating: true,
+            comment: true,
+            createdAt: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+          take: 5,
+        },
       },
     });
 
-    return listing;
+    if (!listing) {
+      return null;
+    }
+
+    // Calculate rating using the custom algorithm
+    const ratingResult = await calculateListingRating(id);
+
+    return {
+      ...listing,
+      averageRating: ratingResult.averageRating,
+      reviewCount: ratingResult.stats.totalReviews,
+    };
   } catch (error) {
     console.error("Error fetching listing by ID:", error);
     return null;
@@ -208,6 +261,69 @@ export async function getListingBookings(listingId: string) {
   } catch (error) {
     console.error("Error fetching listing bookings:", error);
     return [];
+  }
+}
+
+export async function getListingReviews(listingId: string) {
+  try {
+    const [listing, reviews, reviewAggregate] = await Promise.all([
+      prisma.listing.findUnique({
+        where: { id: listingId },
+        select: {
+          id: true,
+          name: true,
+        },
+      }),
+      prisma.review.findMany({
+        where: {
+          listingId,
+        },
+        select: {
+          id: true,
+          rating: true,
+          comment: true,
+          createdAt: true,
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              image: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      }),
+      prisma.review.aggregate({
+        where: {
+          listingId,
+        },
+        _avg: {
+          rating: true,
+        },
+        _count: {
+          _all: true,
+        },
+      }),
+    ]);
+
+    if (!listing) {
+      return null;
+    }
+
+    return {
+      listing,
+      reviews,
+      stats: {
+        averageRating: Number((reviewAggregate._avg.rating ?? 0).toFixed(2)),
+        reviewCount: reviewAggregate._count._all,
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching listing reviews:", error);
+    return null;
   }
 }
 

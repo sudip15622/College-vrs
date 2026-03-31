@@ -17,7 +17,7 @@ const HostingDashboard = async () => {
   const revenueByVehicle30 = await getRevenueByVehicleData(6, 30);
   const revenueByVehicle7 = await getRevenueByVehicleData(6, 7);
   const revenueByVehicle90 = await getRevenueByVehicleData(6, 90);
-  const bookingTrendData = await getBookingTrendData(30);
+  const bookingTrendData = await getBookingTrendData(90);
   const bookingStatusDistribution30 = await getBookingStatusDistributionData(30);
   const bookingStatusDistribution7 = await getBookingStatusDistributionData(7);
   const bookingStatusDistribution90 = await getBookingStatusDistributionData(90);
