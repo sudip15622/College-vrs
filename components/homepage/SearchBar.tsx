@@ -172,7 +172,7 @@ const SearchBar = () => {
 
     params.delete("page");
 
-    return `/?${params.toString()}`;
+    return `/search?${params.toString()}`;
   };
 
   const handleSearchClick = () => {

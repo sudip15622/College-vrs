@@ -15,7 +15,7 @@ const Navbar = ({ user }: NavbarProps) => {
   const mainPages = [
     {
       name: "Vehicles",
-      link: "/",
+      link: "/search",
       url: "/scooter_logo.png",
     },
     {

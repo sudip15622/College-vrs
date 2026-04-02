@@ -17,6 +17,305 @@ interface SearchListingsParams {
   showAll?: boolean; // For admin/host view - show all listings regardless of availability
 }
 
+interface RecommendedListingsParams {
+  limit?: number;
+}
+
+interface RecommendationContext {
+  maxBookings: number;
+  maxRecentBookings: number;
+  minPrice: number;
+  maxPrice: number;
+  medianPrice: number;
+}
+
+interface RecommendationUserProfile {
+  preferredTypes: Set<string>;
+  averageBudget: number | null;
+}
+
+function clamp01(value: number) {
+  if (value < 0) return 0;
+  if (value > 1) return 1;
+  return value;
+}
+
+function normalizeByMax(value: number, max: number) {
+  if (max <= 0) {
+    return 0;
+  }
+  return clamp01(value / max);
+}
+
+function getMedian(numbers: number[]) {
+  if (!numbers.length) {
+    return 0;
+  }
+
+  const sorted = [...numbers].sort((a, b) => a - b);
+  const middle = Math.floor(sorted.length / 2);
+
+  if (sorted.length % 2 === 0) {
+    return (sorted[middle - 1] + sorted[middle]) / 2;
+  }
+
+  return sorted[middle];
+}
+
+async function getRecommendationUserProfile(userId: string) {
+  const userBookings = await prisma.booking.findMany({
+    where: {
+      userId,
+      status: {
+        in: ["Confirmed", "Active", "Completed"],
+      },
+    },
+    select: {
+      pricePerDay: true,
+      bookedAt: true,
+      listing: {
+        select: {
+          type: true,
+        },
+      },
+    },
+    orderBy: {
+      bookedAt: "desc",
+    },
+    take: 20,
+  });
+
+  if (!userBookings.length) {
+    return null;
+  }
+
+  const now = new Date();
+  const recentCutoff = new Date(now.getTime() - 120 * 24 * 60 * 60 * 1000);
+  const recentBookings = userBookings.filter(
+    (booking) => booking.bookedAt >= recentCutoff
+  );
+
+  const sourceBookings = recentBookings.length >= 3 ? recentBookings : userBookings;
+  const typeCounts = new Map<string, number>();
+
+  for (const booking of sourceBookings) {
+    const type = booking.listing.type;
+    typeCounts.set(type, (typeCounts.get(type) ?? 0) + 1);
+  }
+
+  const mostCommonTypeCount = Math.max(...typeCounts.values());
+  const preferredTypes = new Set(
+    [...typeCounts.entries()]
+      .filter(([, count]) => count === mostCommonTypeCount)
+      .map(([type]) => type)
+  );
+
+  const averageBudget =
+    sourceBookings.reduce((sum, booking) => sum + booking.pricePerDay, 0) /
+    sourceBookings.length;
+
+  return {
+    preferredTypes,
+    averageBudget,
+  } as RecommendationUserProfile;
+}
+
+export async function getRecommendedListings(params: RecommendedListingsParams = {}) {
+  const limit = Math.min(Math.max(params.limit ?? 8, 1), 12);
+
+  const session = await auth();
+  const userId = session?.user?.id;
+
+  const [candidates, userProfile] = await Promise.all([
+    prisma.listing.findMany({
+      where: {
+        isAvailable: true,
+      },
+      include: {
+        bookings: {
+          where: {
+            status: {
+              in: ["Confirmed", "Active", "Completed"],
+            },
+          },
+          select: {
+            bookedAt: true,
+          },
+        },
+        reviews: {
+          select: {
+            rating: true,
+            createdAt: true,
+          },
+        },
+      },
+      take: 60,
+      orderBy: {
+        createdAt: "desc",
+      },
+    }),
+    userId ? getRecommendationUserProfile(userId) : Promise.resolve(null),
+  ]);
+
+  if (!candidates.length) {
+    return [];
+  }
+
+  const now = new Date();
+  const recentBookingCutoff = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+
+  const bookingCounts = candidates.map((listing) => listing.bookings.length);
+  const recentBookingCounts = candidates.map(
+    (listing) =>
+      listing.bookings.filter((booking) => booking.bookedAt >= recentBookingCutoff)
+        .length
+  );
+  const prices = candidates.map((listing) => listing.pricePerDay);
+
+  const recommendationContext: RecommendationContext = {
+    maxBookings: Math.max(...bookingCounts, 1),
+    maxRecentBookings: Math.max(...recentBookingCounts, 1),
+    minPrice: Math.min(...prices),
+    maxPrice: Math.max(...prices),
+    medianPrice: getMedian(prices),
+  };
+
+  const scoredListings = candidates
+    .map((listing) => {
+      const bookingCount = listing.bookings.length;
+      const recentBookingCount = listing.bookings.filter(
+        (booking) => booking.bookedAt >= recentBookingCutoff
+      ).length;
+
+      const reviewCount = listing.reviews.length;
+      const averageRating =
+        reviewCount > 0
+          ? listing.reviews.reduce((sum, review) => sum + review.rating, 0) /
+            reviewCount
+          : 0;
+
+      const popularityScore =
+        normalizeByMax(bookingCount, recommendationContext.maxBookings) * 0.7 +
+        normalizeByMax(recentBookingCount, recommendationContext.maxRecentBookings) * 0.3;
+
+      const reviewConfidence = reviewCount / (reviewCount + 4);
+      const qualityScore =
+        clamp01(averageRating / 5) * 0.8 + clamp01(reviewConfidence) * 0.2;
+
+      const priceRange = recommendationContext.maxPrice - recommendationContext.minPrice;
+      const marketCenterDistance = Math.abs(
+        listing.pricePerDay - recommendationContext.medianPrice
+      );
+
+      const marketFitScore =
+        priceRange > 0
+          ? clamp01(1 - marketCenterDistance / Math.max(priceRange / 2, 1))
+          : 0.7;
+
+      const affordabilityScore =
+        priceRange > 0
+          ? clamp01(
+              (recommendationContext.maxPrice - listing.pricePerDay) /
+                Math.max(priceRange, 1)
+            )
+          : 0.7;
+
+      const valueScore = marketFitScore * 0.6 + affordabilityScore * 0.4;
+
+      const daysSinceCreated =
+        (now.getTime() - listing.createdAt.getTime()) / (1000 * 60 * 60 * 24);
+      const freshnessScore = clamp01(1 - daysSinceCreated / 180);
+
+      let personalizationScore = 0;
+
+      if (userProfile) {
+        if (userProfile.preferredTypes.has(listing.type)) {
+          personalizationScore += 0.12;
+        }
+
+        if (userProfile.averageBudget !== null) {
+          const priceDistance =
+            Math.abs(listing.pricePerDay - userProfile.averageBudget) /
+            Math.max(userProfile.averageBudget, 1);
+          personalizationScore += 0.08 * clamp01(1 - priceDistance);
+        }
+      }
+
+      const coldStartBoost = bookingCount === 0 && reviewCount === 0 ? 0.03 : 0;
+
+      const score =
+        popularityScore * 0.33 +
+        qualityScore * 0.29 +
+        valueScore * 0.18 +
+        freshnessScore * 0.12 +
+        personalizationScore +
+        coldStartBoost;
+
+      const reasons: string[] = [];
+
+      if (popularityScore >= 0.65) {
+        reasons.push("Popular choice");
+      }
+      if (qualityScore >= 0.7 && reviewCount > 0) {
+        reasons.push("Highly rated");
+      }
+      if (valueScore >= 0.65) {
+        reasons.push("Great value");
+      }
+      if (freshnessScore >= 0.75) {
+        reasons.push("Recently listed");
+      }
+      if (userProfile && userProfile.preferredTypes.has(listing.type)) {
+        reasons.push("Matches your booking style");
+      }
+      if (reasons.length === 0) {
+        reasons.push("Recommended for you");
+      }
+
+      return {
+        ...listing,
+        averageRating,
+        reviewCount,
+        recommendationScore: score,
+        recommendationReasons: reasons,
+      };
+    })
+    .sort((a, b) => {
+      if (b.recommendationScore !== a.recommendationScore) {
+        return b.recommendationScore - a.recommendationScore;
+      }
+      return b.createdAt.getTime() - a.createdAt.getTime();
+    });
+
+  const diversified: typeof scoredListings = [];
+  const remaining = [...scoredListings];
+
+  while (diversified.length < limit && remaining.length > 0) {
+    const lastType = diversified[diversified.length - 1]?.type;
+    const nextIndex = remaining.findIndex(
+      (item) => item.type !== lastType || remaining.length === 1
+    );
+    const indexToUse = nextIndex === -1 ? 0 : nextIndex;
+    diversified.push(remaining.splice(indexToUse, 1)[0]);
+  }
+
+  return diversified.map((listing) => ({
+    id: listing.id,
+    type: listing.type,
+    name: listing.name,
+    description: listing.description,
+    pricePerDay: listing.pricePerDay,
+    image: listing.image,
+    isAvailable: listing.isAvailable,
+    createdAt: listing.createdAt,
+    updatedAt: listing.updatedAt,
+    averageRating: Number(listing.averageRating.toFixed(2)),
+    reviewCount: listing.reviewCount,
+    recommendationScore: Number(listing.recommendationScore.toFixed(4)),
+    recommendationReasons: listing.recommendationReasons,
+  }));
+}
+
 export async function searchListings(params: SearchListingsParams) {
   const {
     limit = 6,

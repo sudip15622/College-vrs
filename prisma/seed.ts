@@ -206,6 +206,148 @@ export async function main() {
         image: { url: "/vehicle2.jfif", publicId: "123456" },
       },
     }),
+    prisma.listing.create({
+      data: {
+        type: "Bike",
+        name: "Bajaj Pulsar N160",
+        description:
+          "A practical street bike with solid low-end torque, good mileage, and sharp styling. Great for daily city rides and occasional weekend trips.",
+        pricePerDay: 950,
+        fuelType: "Petrol",
+        transmission: "Manual",
+        engineCapacity: 164,
+        mileage: 45,
+        condition: "Excellent",
+        features: [
+          "ABS",
+          "Disc Brakes",
+          "LED Headlights",
+          "Digital Speedometer",
+          "Self Start",
+          "Mobile Holder",
+          "Alloy Wheels",
+        ],
+        image: { url: "/vehicle1.jfif", publicId: "123457" },
+      },
+    }),
+    prisma.listing.create({
+      data: {
+        type: "Scooter",
+        name: "TVS Ntorq 125",
+        description:
+          "A sporty scooter with quick pickup, stylish design, and practical storage. Excellent for short city commutes and everyday errands.",
+        pricePerDay: 850,
+        fuelType: "Petrol",
+        transmission: "Automatic",
+        engineCapacity: 124,
+        mileage: 48,
+        condition: "Excellent",
+        features: [
+          "USB Charging Port",
+          "LED Headlights",
+          "Digital Speedometer",
+          "Under-Seat Storage",
+          "Self Start",
+          "Mobile Holder",
+        ],
+        image: { url: "/vehicle2.jfif", publicId: "123458" },
+      },
+    }),
+    prisma.listing.create({
+      data: {
+        type: "Bike",
+        name: "Honda Hornet 2.0",
+        description:
+          "A refined and reliable city-performance bike with premium styling and comfortable ergonomics. Suitable for both beginners and regular riders.",
+        pricePerDay: 1050,
+        fuelType: "Petrol",
+        transmission: "Manual",
+        engineCapacity: 184,
+        mileage: 42,
+        condition: "Good",
+        features: [
+          "ABS",
+          "Disc Brakes",
+          "LED Headlights",
+          "Digital Speedometer",
+          "Self Start",
+          "GPS Tracker",
+          "Alloy Wheels",
+        ],
+        image: { url: "/vehicle3.jfif", publicId: "123459" },
+      },
+    }),
+    prisma.listing.create({
+      data: {
+        type: "Bike",
+        name: "Suzuki Gixxer 155",
+        description:
+          "A balanced street motorcycle with smooth power delivery, stable handling, and efficient fuel economy for urban and highway use.",
+        pricePerDay: 1000,
+        fuelType: "Petrol",
+        transmission: "Manual",
+        engineCapacity: 155,
+        mileage: 43,
+        condition: "Excellent",
+        features: [
+          "ABS",
+          "Disc Brakes",
+          "LED Headlights",
+          "Digital Speedometer",
+          "Self Start",
+          "Mobile Holder",
+          "Alloy Wheels",
+        ],
+        image: { url: "/vehicle4.jfif", publicId: "123460" },
+      },
+    }),
+    prisma.listing.create({
+      data: {
+        type: "Scooter",
+        name: "Aprilia SR 160",
+        description:
+          "A performance-focused scooter with aggressive styling and responsive handling. Ideal for riders who want sporty feel in daily commuting.",
+        pricePerDay: 980,
+        fuelType: "Petrol",
+        transmission: "Automatic",
+        engineCapacity: 160,
+        mileage: 40,
+        condition: "Good",
+        features: [
+          "Disc Brakes",
+          "LED Headlights",
+          "Digital Speedometer",
+          "Under-Seat Storage",
+          "Self Start",
+          "Bluetooth Connectivity",
+        ],
+        image: { url: "/vehicle5.jfif", publicId: "123461" },
+      },
+    }),
+    prisma.listing.create({
+      data: {
+        type: "Bike",
+        name: "Yezdi Roadster 334",
+        description:
+          "A modern retro motorcycle with strong road presence, comfortable cruising posture, and punchy mid-range performance.",
+        pricePerDay: 1300,
+        fuelType: "Petrol",
+        transmission: "Manual",
+        engineCapacity: 334,
+        mileage: 33,
+        condition: "Good",
+        features: [
+          "ABS",
+          "Disc Brakes",
+          "LED Headlights",
+          "Digital Speedometer",
+          "Self Start",
+          "GPS Tracker",
+          "Alloy Wheels",
+        ],
+        image: { url: "/vehicle1.jfif", publicId: "123462" },
+      },
+    }),
   ]);
 
   console.log(`Created ${listings.length} vehicle listings`);
@@ -303,6 +445,151 @@ export async function main() {
       },
     });
   }
+
+  // Add more completed bookings and reviews across other vehicles for richer recommendation data
+  const additionalVehicleScenarios = [
+    {
+      vehicle: listings[1], // Honda Dio
+      rides: [
+        {
+          start: new Date(2026, 3, 8),
+          end: new Date(2026, 3, 11),
+          rating: 4,
+          comment:
+            "Very smooth scooter for city rides. Pickup and return were easy and quick.",
+          daysAfterCompletion: 2,
+        },
+        {
+          start: new Date(2026, 4, 14),
+          end: new Date(2026, 4, 17),
+          rating: 5,
+          comment:
+            "Mileage was excellent and storage was enough for daily essentials. Great overall experience.",
+          daysAfterCompletion: 1,
+        },
+      ],
+    },
+    {
+      vehicle: listings[2], // Royal Enfield Classic 350
+      rides: [
+        {
+          start: new Date(2026, 5, 2),
+          end: new Date(2026, 5, 6),
+          rating: 5,
+          comment:
+            "Great highway comfort and iconic sound. Bike was clean and in good condition.",
+          daysAfterCompletion: 3,
+        },
+        {
+          start: new Date(2026, 6, 9),
+          end: new Date(2026, 6, 12),
+          rating: 4,
+          comment:
+            "Enjoyed the ride quality a lot. Slightly heavy in traffic but very stable.",
+          daysAfterCompletion: 2,
+        },
+      ],
+    },
+    {
+      vehicle: listings[3], // Yamaha MT-15
+      rides: [
+        {
+          start: new Date(2026, 7, 4),
+          end: new Date(2026, 7, 7),
+          rating: 5,
+          comment:
+            "Very agile and fun to ride. Brakes and handling inspired confidence throughout.",
+          daysAfterCompletion: 2,
+        },
+        {
+          start: new Date(2026, 8, 10),
+          end: new Date(2026, 8, 13),
+          rating: 4,
+          comment:
+            "Sporty ride with good comfort. Booking and support process were straightforward.",
+          daysAfterCompletion: 1,
+        },
+      ],
+    },
+    {
+      vehicle: listings[5], // Vespa Urban 125
+      rides: [
+        {
+          start: new Date(2026, 9, 6),
+          end: new Date(2026, 9, 9),
+          rating: 4,
+          comment:
+            "Stylish and comfortable scooter. Perfect for short city trips and errands.",
+          daysAfterCompletion: 2,
+        },
+        {
+          start: new Date(2026, 10, 12),
+          end: new Date(2026, 10, 15),
+          rating: 5,
+          comment:
+            "Loved the smooth automatic ride and easy maneuvering in traffic.",
+          daysAfterCompletion: 3,
+        },
+      ],
+    },
+  ];
+
+  let additionalBookingsCount = 0;
+  let additionalReviewsCount = 0;
+
+  for (const scenario of additionalVehicleScenarios) {
+    for (const ride of scenario.rides) {
+      const totalDays = Math.max(
+        1,
+        Math.ceil((ride.end.getTime() - ride.start.getTime()) / (24 * 60 * 60 * 1000))
+      );
+
+      const booking = await prisma.booking.create({
+        data: {
+          userId: user.id,
+          listingId: scenario.vehicle.id,
+          startDate: ride.start,
+          endDate: ride.end,
+          pricePerDay: scenario.vehicle.pricePerDay,
+          totalDays,
+          totalPrice: scenario.vehicle.pricePerDay * totalDays,
+          renterContactNumber: "9841234567",
+          renterNotes: "2026 test booking for recommendation scoring.",
+          status: "Completed",
+          isPaid: true,
+          paidAt: ride.start,
+          bookedAt: new Date(ride.start.getTime() - 5 * 24 * 60 * 60 * 1000),
+          completedAt: ride.end,
+        },
+      });
+
+      additionalBookingsCount += 1;
+
+      const reviewDate = new Date(
+        booking.completedAt!.getTime() + ride.daysAfterCompletion * 24 * 60 * 60 * 1000
+      );
+
+      await prisma.review.create({
+        data: {
+          userId: user.id,
+          listingId: scenario.vehicle.id,
+          bookingId: booking.id,
+          rating: ride.rating,
+          comment: ride.comment,
+          commentLength: ride.comment.length,
+          hasPhotos: ride.rating >= 5,
+          createdAt: reviewDate,
+        },
+      });
+
+      additionalReviewsCount += 1;
+    }
+  }
+
+  console.log(
+    `Created ${additionalBookingsCount} additional completed bookings across 4 vehicles`
+  );
+  console.log(`Created ${additionalReviewsCount} additional reviews in 2026`);
 
   console.log("Created 6 reviews with varying ratings and comment lengths");
   console.log("Seed data created successfully!");

@@ -26,25 +26,36 @@ interface Listing {
   createdAt?: number;
   updatedAt?: number;
   bookings?: any[];
+  recommendationReasons?: string[];
 }
 
 interface ListingCardProps {
   listing: Listing;
   priority?: boolean;
   showLocation?: boolean;
+  showRecommendationBadge?: boolean;
 }
 
 const ListingCard = ({
   listing,
   priority = false,
   showLocation = false,
+  showRecommendationBadge = false,
 }: ListingCardProps) => {
+  const recommendationText = listing.recommendationReasons?.[0];
+
   return (
     <div className="relative flex-1 min-w-52.25 max-w-52.5 items-stretch group overflow-hidden">
       <Link
         href={`/vehicles/${listing.id}`}
         className="flex w-full h-full flex-col justify-between gap-y-4 rounded-xl"
       >
+        {showRecommendationBadge && recommendationText && (
+          <div className="z-10 absolute top-2 right-2 px-2 py-1 rounded-full text-[11px] font-medium bg-primary text-primary-foreground shadow-sm">
+            {recommendationText}
+          </div>
+        )}
+
         {listing.isAvailable && (
           <div
             className={`z-10 flex items-center justify-center gap-x-0.5 absolute w-fit h-fit top-2 left-2 px-2 py-1 rounded-full text-xs font-medium bg-card text-primary shadow-sm`}

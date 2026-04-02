@@ -62,7 +62,7 @@ export default function SearchPageClient() {
         // Call the search action
         const result = await searchListings({
           page,
-        //   limit,
+          limit: 12,
           name,
           type,
           startDate,
