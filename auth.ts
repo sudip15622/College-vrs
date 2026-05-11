@@ -6,6 +6,7 @@ import { customHash } from "./lib/hash";
 
 export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
   adapter: PrismaAdapter(prisma) as any,
+  trustHost: process.env.AUTH_TRUST_HOST === "true",
   session: {
     strategy: "jwt",
   },
